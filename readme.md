@@ -1,26 +1,20 @@
-#CSC 462 Advanced Graphics Final Project
-
-##Screen Space Ambient Occlusion Project
-
+# CSC 462 Advanced Graphics Final Project
+## Screen Space Ambient Occlusion Project
 by Shon Ferguson (spfergus@ncsu.edu)
 4/30/2017
 
-##Description
-
+## Description
 This demo, created as a final project for Advanced Graphics class, demonstrates several techniques for generating real-time ambient occlusion.  It includes implementations of SSAO, SSAO+, HBAO, and Unsharpen Mask techniques.  It also features multiple render targets, the ability to load OBJ files, and normal and specular mapping.
 
-##Directions
-
+## Directions
 Visit the following URL to run the program:
 
 The program requires WebGL 2.0 support to run, and on my machine it runs best in Chrome/Opera.  It also runs in FireFox but it takes much longer to load and it may be required to confirm that you would like to wait longer for the script to complete before it will become interactive.  It does not work in Internet Explorer/Edge.
 
-###Controls
-
+### Controls
 Walk around using the arrow keys.  Press key toggles to changes options, as described below.
 
 ### Key Toggles
-
 The program implements several toggleable modes that can be accessed by pressing various keys.  The current state of these, as well as the key to press, are shown in the heads-up display.
  * **C** Toggles dislay of characters.  These characters have a lot of polygons, so turning them off may boost performance.
  * **A** Toggles the current AO effect on and off so the effect can be compared with basic rendering.
@@ -36,7 +30,6 @@ I have included transpiled JavaScript code that is ready to run in a browser, bu
 The program is written with [TypeScript](http://www.typescriptlang.org), which is a superset of JavaScript that adds type information as well as new language features that are not yet widley available in browsers.  The type information allows you to get error checking and code-completion within an editor so you know if you have made a simple mistake before refreshing the browser.  However, since browsers can't execute TypeScript directly, it requires an additional step to transpile TypeScript *.ts files into JavaScript *.js files that can be executed in a browser.  It can also produce code maps so that the original type script files can be debugged within the browser as if they were actually being executed.
 
 ### Build Steps
-
 1. Download and install [Node.js](https://nodejs.org/en/), if it is not already intalled.  Even if you have an existing installation, you may want to update it the latest to avoid any potential problems with the rest of the steps.
 2. Clone the github repository to a local folder
 3. Open a command promjpt and navigate to the repository folder
@@ -73,35 +66,31 @@ After the project is open, you can press **Ctrl+Shift+B** to start a TypeScript 
 ##Claims
 
 ### SSAO+
-
 I have implemented the SSAO+ variation on the screen space-ambient occlusion technique which focuses the samples in the hemisphere surrounding the view-space normal.  Additionally, I have imlemented normal mapping so that fine details can be seen in the AO, even though this detail does not exist in the mesh. The implementation is located in **typescript/shaderPrograms/SSAOPlusShaderProgram.ts** and **built/shaders/screen-ssao+.frag**.
 
 ### Unsharpen Mask
-
 I have implemented the simplistic AO technique unsharpen mask which subtracts a blurred version of the depth buffer from itself.  I did so using a separated horizontal and vertical blur passes.  The implementation can be found in **built/shaders/screen-unsharpen-mask.frag**, **built/shaders/screen-gaus-h.frag**, and **built/shaders/screen-gaus-v.frag**.
 
 ### HBAO
-
 I have implemented horizon-based ambient occlusion, a technique which arranges the samples into rays and only takes into account the ray which increases the angle between the normal plane the most.  I have included features such as random sample rotation and jittering, and tangent angle bias to reduce artifacts.  The implementation is in **typescript/shaderPrograms/HBAOShaderProgram.ts**, and **built/shaders/screen-hbao.frag**.
 
 ## Results
-
 I created a short video illustrating the features of the program, which is located here:
 
 ## Asset Credits
 
-###FUTURESCAN GIGAPIXEL SAMPLE #2
+### FUTURESCAN GIGAPIXEL SAMPLE #2
 https://www.turbosquid.com/3d-models/people-archviz-zbrush-max-free/886664
 
-##Sponza Atrium
+## Sponza Atrium
 Original created by Marko Dabrovic: http://hdri.cgtechniques.com/~sponza/files/
 Updated version created by Crytek: http://www.crytek.com/cryengine/cryengine3/downloads/
 
-##Goblin
+## Goblin
 https://www.turbosquid.com/3d-models/polygonal-fantasy-goblin-3d-model/275524
 
-##Footstep Sound
+## Footstep Sound
 http://soundbible.com/2057-Footsteps-On-Cement.html
 
-##Additional Normal Maps
+## Additional Normal Maps
 Created using AwesomeBump: https://github.com/kmkolasinski/AwesomeBump
