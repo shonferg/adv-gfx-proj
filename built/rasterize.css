@@ -1,0 +1,20 @@
+body {
+    background: #777;
+}
+
+#myWebGLCanvas {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+}
+
+.container {
+    position: relative;
+}
+#overlay {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    font-size: 20px;
+    color: #FF0;
+}

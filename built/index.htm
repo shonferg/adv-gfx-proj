@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Prog 3: Rasterization Shell</title>
+    
+    <link type="text/css" rel="stylesheet" href="rasterize.css">
+
+    <script type="text/javascript" src="js/require.js"></script>
+    <script type="text/javascript" src="js/merged.js"></script>
+    
+    <script>
+        require.config({
+            baseUrl: '',
+            paths: {
+                "gl-matrix": "./js/gl-matrix"
+            }
+        });
+        
+        require([
+            'rasterize',
+            'gl-matrix'
+        ], function(rasterize, glMatrix) {
+            rasterize.main();
+            
+        });
+    </script>
+  </head>
+
+  <body>
+    <div class="container">
+        <canvas id="myWebGLCanvas" width="1280" height="720"></canvas>
+        <div id="overlay">
+            <div>Frame Time: <span id="frameTime"></span> ms</div>
+            <div>Triangles Drawn: <span id="triangles"></span></div>
+            <div>Characters (C): <span id="displayCharacters"></span></div>
+            <div>AO (A): <span id="aoEnabled"></span></div>
+            <div>Mix (M): <span id="mixMode"></span></div>
+            <div>Samples (S): <span id="sampleCount"></span></div>
+            <div>Technique (T): <span id="ssaoTechnique"></span></div>
+            <div>Buffer Display (B): <span id="bufferToDisplay"></span></div>
+        </div>
+    </div>
+  </body>
+</html>

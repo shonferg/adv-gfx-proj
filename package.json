@@ -1,0 +1,19 @@
+{
+  "name": "advanced-graphics-project",
+  "version": "1.0.0",
+  "description": "by Shon Ferguson (spfergus@ncsu.edu)\r 3/3/2017",
+  "main": "rasterize.ts",
+  "dependencies": {
+    "gl-matrix": "^2.3.2"
+  },
+  "devDependencies": {
+    "@types/gl-matrix": "^2.2.34",
+    "@types/webgl2": "0.0.0",
+    "gl-matrix": "^2.3.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

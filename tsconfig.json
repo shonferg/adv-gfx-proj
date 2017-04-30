@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "outDir": "./built/js",
+        "sourceMap": true,
+        "target": "es6",
+        "module": "amd",
+        "outFile": "./built/js/merged.js"
+    },
+    "include": [
+        "./typescript/*.ts"
+    ]
+}

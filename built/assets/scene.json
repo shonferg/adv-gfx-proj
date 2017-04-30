@@ -1,0 +1,73 @@
+{
+    "lights": [
+        {
+            "position": [6, 2, 0],
+            "ambient": [1.0, 1.0, 1.0],
+            "diffuse": [1.0, 1.0, 1.0],
+            "specular": [1.0, 1.0, 1.0]
+        },
+        {
+            "position": [-6, 2, 0],
+            "ambient": [1.0, 1.0, 1.0],
+            "diffuse": [1.0, 1.0, 1.0],
+            "specular": [1.0, 1.0, 1.0]
+        }
+    ],
+    "environment": [
+         {
+            "objFile": "sponza/sponza.obj",
+            "mtlFile": "sponza/sponza.mtl",
+            "position": [0, 0, 0],
+            "scale": 0.008,
+            "scaleTo1by1": false,
+            "material": {
+                "ambient": [0.588, 0.588, 0.588],
+                "diffuse": [0.588, 0.588, 0.588],
+                "specular": [ 0.1, 0.1, 0.1],
+                "n": 20,
+                "alpha": 1.0,
+                "texture": "sponza/textures/spnza_bricks_a_diff.png",
+                "specTexture": false,
+                "normalTexture": false
+            }
+        }
+    ],
+    "characters": [
+        {
+            "objFile": "scan.obj",
+            "mtlFile": null,
+            "position": [4, 0, 0],
+            "scale": 0.66,
+            "rotation": [0, 0, 0],
+            "scaleTo1by1": true,
+            "material": {
+                "ambient": [0.588, 0.588, 0.588],
+                "diffuse": [0.588, 0.588, 0.588],
+                "specular": [0.1, 0.1, 0.1],
+                "n": 20,
+                "alpha": 1.0,
+                "texture": "futurescan_d.png",
+                "specTexture": false,
+                "normalTexture": false
+            }
+        },
+        {
+            "objFile": "goblin.obj",
+            "mtlFile": null,
+            "position": [-1,0,-2],
+            "scale": 0.6,
+            "rotation": [0, 0, 0],
+            "scaleTo1by1": true,
+            "material": {
+                "ambient": [0.588, 0.588, 0.588],
+                "diffuse": [0.588, 0.588, 0.588],
+                "specular": [0.1, 0.1, 0.1],
+                "n": 20,
+                "alpha": 1.0,
+                "texture": "goblin_d.png",
+                "specTexture": false,
+                "normalTexture": "goblin_ddn.png"
+            }
+        }
+    ]
+}
