@@ -1,5 +1,5 @@
 # CSC 462 Advanced Graphics Final Project
-## Screen Space Ambient Occlusion Project
+**Screen Space Ambient Occlusion Project**
 by Shon Ferguson (spfergus@ncsu.edu)
 4/30/2017
 
