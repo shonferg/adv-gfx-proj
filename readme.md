@@ -1,4 +1,5 @@
 #CSC 462 Advanced Graphics Final Project
+
 ##Screen Space Ambient Occlusion Project
 
 by Shon Ferguson (spfergus@ncsu.edu)
@@ -36,30 +37,30 @@ The program is written with [TypeScript](http://www.typescriptlang.org), which i
 
 ### Build Steps
 
-2. Download and install [Node.js](https://nodejs.org/en/), if it is not already intalled.  Even if you have an existing installation, you may want to update it the latest to avoid any potential problems with the rest of the steps.
-3. Clone the github repository to a local folder
-4. Open a command promjpt and navigate to the repository folder
-5. Use Node.js to install TypeScript globally with this command (Note: Some of these may require sudo on Mac or Linux):
+1. Download and install [Node.js](https://nodejs.org/en/), if it is not already intalled.  Even if you have an existing installation, you may want to update it the latest to avoid any potential problems with the rest of the steps.
+2. Clone the github repository to a local folder
+3. Open a command promjpt and navigate to the repository folder
+4. Use Node.js to install TypeScript globally with this command (Note: Some of these may require sudo on Mac or Linux):
 ```
 npm install -g typescript
 ```
-6. Use Node.js to install [http-server](https://www.npmjs.com/package/http-server) globally with this command:
+5. Use Node.js to install [http-server](https://www.npmjs.com/package/http-server) globally with this command:
 ```
 npm install -g http-server
 ```
-7. Use Node.js to download the dependencies for the project (gl-matrix and type information for webgl2):
+6. Use Node.js to download the dependencies for the project (gl-matrix and type information for webgl2):
 ```
 npm install
 ```
-8. Use TypeScript to build the project.  Note: You can add the **-w** command line switch to run TypeScript in watch mode.  In this mode, TypeScript will continue to run and watch all your files for changes.  Any change to the source *.ts files will result in a rebuilt *.js file.  This way, you will not have to remember to type the command every time you make a change.  However, this will take over the current console window, so you will need to open a separate one for the next step.
+7. Use TypeScript to build the project.  Note: You can add the **-w** command line switch to run TypeScript in watch mode.  In this mode, TypeScript will continue to run and watch all your files for changes.  Any change to the source *.ts files will result in a rebuilt *.js file.  This way, you will not have to remember to type the command every time you make a change.  However, this will take over the current console window, so you will need to open a separate one for the next step.
 ```
 tsc
 ```
-9. Use the simple Node.js http-server to host the page locally.  This will take over the current command line window while it is running.  Note that this requires port 8080 to be unused.  You can specify an alternative port with the **-p** command-line option if desired:
+8. Use the simple Node.js http-server to host the page locally.  This will take over the current command line window while it is running.  Note that this requires port 8080 to be unused.  You can specify an alternative port with the **-p** command-line option if desired:
 ```
 http-server
-````
-10. Browse to [http://localhost:8080/built/index.htm].  As mentioned before, Chrome and Opera work best, but FireFox should also work.
+```
+9. Browse to [http://localhost:8080/built/index.htm].  As mentioned before, Chrome and Opera work best, but FireFox should also work.
 
 ### Visual Studio Code
 
@@ -67,7 +68,7 @@ For the best experience when browsing the code, I recomend trying out Microsoft'
 ```
 code .
 ```
-After the project is open, you can press **Ctrl+Shift+B** to start a TypeScript build in watch mode.  If you do it this way, you do not have to type the **tsc** command in step 8 above.
+After the project is open, you can press **Ctrl+Shift+B** to start a TypeScript build in watch mode.  If you do it this way, you do not have to type the **tsc** command in step 7 above.
 
 ##Claims
 
