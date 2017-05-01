@@ -1,4 +1,6 @@
 #version 300 es
+// A fragment shader that simply draws a texture to the whole screen with no modification
+
 precision mediump float; // set float to medium precision
 
 // texture properties

@@ -636,13 +636,27 @@ define("util", ["require", "exports"], function (require, exports) {
 define("shaderPrograms/ShaderProgram", ["require", "exports", "rasterize", "util"], function (require, exports, rasterize_2, util_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * A helper class to make it possible to make various uniforms available to shaders, but only attempt
+     * to set them if the shader source code actually contains the name of the uniform.
+     */
     class OptionalUniform {
+        /**
+         * Creates a new OptionalUniform.
+         * @param name The name of the uniform that will appear in the shader source code if in use.
+         * @param owner The shader program that this uniform is part of.
+         * @param source The shader source code.
+         */
         constructor(name, owner, source) {
             this.enabled = source.frag.indexOf(name) != -1 || source.vert.indexOf(name) != -1;
             if (this.enabled) {
                 this.location = owner.initUniform(name);
             }
         }
+        /**
+         * This method is used as a convenient way to execute code only if the uniform is in use by the shader.
+         * @param action This action will only be invoked if the uniform is in use.  The location will be passed in as a parameter.
+         */
         ifEnabled(action) {
             if (this.enabled) {
                 action(this.location);
@@ -650,9 +664,17 @@ define("shaderPrograms/ShaderProgram", ["require", "exports", "rasterize", "util
         }
     }
     exports.OptionalUniform = OptionalUniform;
+    /**
+     * Base class for all shader programs.  These classes encapsulate shader techniques that are a combination of vertex and fragment shaders as well as
+     * a collection of uniforms and attributes.
+     */
     class ShaderProgram {
+        /**
+         * Creates a new ShaderProgram.
+         * @param source The shader source code.
+         */
         constructor(source) {
-            this.attributes = [];
+            this.attributes = []; // All the attributes used by the shader
             this.index = ShaderProgram.nextIndex++;
             try {
                 // create vertex shader
@@ -686,26 +708,48 @@ define("shaderPrograms/ShaderProgram", ["require", "exports", "rasterize", "util
                 console.log(e);
             }
         }
+        /**
+         * Initializes a new shader uniform.
+         * @param name The name of the uniform to initialize
+         * @return The WebGL uniform location.
+         */
         initUniform(name) {
             return rasterize_2.gl.getUniformLocation(this.program, name);
         }
+        /**
+         * Initializes a new shader attribute.
+         * @param name The name of the attribute.
+         * @return The WebGL attribute location number.
+         */
         initAttribute(name) {
             let loc = rasterize_2.gl.getAttribLocation(this.program, name); // ptr to vertex pos attrib
             this.attributes.push(loc);
             return loc;
         }
+        /**
+         * Begins rendering with this shader program.  Should be paired with a call to end.
+         */
         begin() {
             rasterize_2.gl.useProgram(this.program);
             for (let loc of this.attributes) {
                 rasterize_2.gl.enableVertexAttribArray(loc);
             }
         }
+        /**
+         * Ends rendering with this shader program.  Should come after a call to begin.
+         */
         end() {
             for (let loc of this.attributes) {
                 rasterize_2.gl.disableVertexAttribArray(loc);
             }
             rasterize_2.gl.useProgram(null);
         }
+        /**
+         * Fetches shader source code from URLs in the background.
+         * @param vertexShaderBaseName The name of the vertex shader file without path or extension.
+         * @param fragmentShaderBaseName The name of the fragment shader file without path or extension.
+         * @return A ShaderSourceCode objects containing the text data from the two files once they have both been fetched.
+         */
         static fetchSource(vertexShaderBaseName, fragmentShaderBaseName) {
             return __awaiter(this, void 0, void 0, function* () {
                 let vSourceResult = util_1.getTextFile("shaders/" + vertexShaderBaseName + ".vert");
@@ -717,19 +761,31 @@ define("shaderPrograms/ShaderProgram", ["require", "exports", "rasterize", "util
             });
         }
     }
+    // The next index to use when creating a new shader.  It will be incremented each time a shader is created.
     ShaderProgram.nextIndex = 0;
     exports.ShaderProgram = ShaderProgram;
 });
 define("shaderPrograms/DefaultShaderProgram", ["require", "exports", "shaderPrograms/ShaderProgram", "rasterize", "gl-matrix"], function (require, exports, ShaderProgram_1, rasterize_3, gl_matrix_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Shader program used for rendering solid objects.
+     */
     class DefaultShaderProgram extends ShaderProgram_1.ShaderProgram {
+        /**
+         * Creates a new DefaultShaderProgram.
+         * @param source Source code for the shader.
+         * @param Eye The current eye position.
+         * @param lights n An array of light positions.
+         * @param useNormalMap Whether to use normal mapping.
+         */
         constructor(source, Eye, lights, useNormalMap) {
             source.frag = source.frag.replace("{{num-lights}}", lights.length.toString());
             source.frag = source.frag.replace("{{use-normal-map}}", useNormalMap ? "#define USE_NORMAL_MAP" : "");
             source.vert = source.vert.replace("{{use-normal-map}}", useNormalMap ? "#define USE_NORMAL_MAP" : "");
             super(source);
             this.useNormalMap = useNormalMap;
+            this.currentTriCount = 0;
             this.vPosAttribLoc = this.initAttribute("aVertexPosition");
             this.vNormAttribLoc = this.initAttribute("aVertexNormal");
             this.vUVAttribLoc = this.initAttribute("aVertexUV");
@@ -772,11 +828,20 @@ define("shaderPrograms/DefaultShaderProgram", ["require", "exports", "shaderProg
             rasterize_3.gl.uniform3fv(this.lightSpecularULoc, specular); // pass in the light's specular emission
             rasterize_3.gl.uniform3fv(this.lightPositionULoc, position); // pass in the light's positions
         }
+        /**
+         * Sets the view projection matrix, as well as updating the eye position.  Applies to subsequent objects rendered with the shader.
+         * @param pvMatrix The view projection matrix.
+         */
         setViewProjectionMatrix(pvMatrix) {
             // If the shader changed, set frame-constant values
             rasterize_3.gl.uniform3fv(this.eyePositionULoc, rasterize_3.Eye);
             rasterize_3.gl.uniformMatrix4fv(this.pvMatrixULoc, false, pvMatrix); // pass in the pv matrix
         }
+        /**
+         * Sets the model and view matricies.  Applies to subsequent objects rendered with the shader.
+         * @param mMatrix The model matrix.
+         * @param mView The view matrix.
+         */
         setModelMatrix(mMatrix, mView) {
             rasterize_3.gl.uniformMatrix4fv(this.mMatrixULoc, false, mMatrix); // pass in the m matrix
             let mITMV = gl_matrix_4.mat4.create();
@@ -785,6 +850,10 @@ define("shaderPrograms/DefaultShaderProgram", ["require", "exports", "shaderProg
             gl_matrix_4.mat4.transpose(mITMV, mITMV);
             rasterize_3.gl.uniformMatrix4fv(this.mInvTransMVULoc, false, mITMV); // pass in the m matrix
         }
+        /**
+         * Sets material colors and textures.  Applies to subsequent objects rendered with the shader.
+         * @param material An object describing the material to use.
+         */
         setMaterial(material) {
             // reflectivity: feed to the fragment shader
             rasterize_3.gl.uniform3fv(this.ambientULoc, material.ambient); // pass in the ambient reflectivity
@@ -809,6 +878,10 @@ define("shaderPrograms/DefaultShaderProgram", ["require", "exports", "shaderProg
                 }
             }
         }
+        /**
+         * Sets the mesh to use for subsequent renders with this shader.
+         * @param mesh An object containing mesh data such as verticies and texture coordinates.
+         */
         setMesh(mesh) {
             // position, normal and uv buffers: activate and feed into vertex shader
             rasterize_3.gl.bindBuffer(rasterize_3.gl.ARRAY_BUFFER, mesh.vertexBuffer); // activate position
@@ -825,11 +898,16 @@ define("shaderPrograms/DefaultShaderProgram", ["require", "exports", "shaderProg
             rasterize_3.gl.vertexAttribPointer(this.vUVAttribLoc, 2, rasterize_3.gl.FLOAT, false, 0, 0); // feed
             // Activate Index buffer
             rasterize_3.gl.bindBuffer(rasterize_3.gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
+            this.currentTriCount = mesh.triangles.length;
         }
-        draw(mesh, primitiveType) {
+        /**
+         * Draws the current mesh.
+         * @return The number of triangles drawn.
+         */
+        draw() {
             // Render triangles
-            rasterize_3.gl.drawElements(primitiveType, mesh.triangles.length * 3, rasterize_3.gl.UNSIGNED_SHORT, 0);
-            return mesh.triangles.length;
+            rasterize_3.gl.drawElements(rasterize_3.gl.TRIANGLES, this.currentTriCount * 3, rasterize_3.gl.UNSIGNED_SHORT, 0);
+            return this.currentTriCount;
         }
     }
     exports.DefaultShaderProgram = DefaultShaderProgram;
@@ -1044,7 +1122,14 @@ define("SoundBuffer", ["require", "exports"], function (require, exports) {
 define("shaderPrograms/ScreenShaderProgram", ["require", "exports", "shaderPrograms/ShaderProgram", "rasterize"], function (require, exports, ShaderProgram_2, rasterize_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Base class used by all full screen shader programs.  Used with a full-screen quad to apply an effect to the whole screen.
+     */
     class ScreenShaderProgram extends ShaderProgram_2.ShaderProgram {
+        /**
+         * Creates a new ScreenShaderProgram.
+         * @param source The source code for the shader.
+         */
         constructor(source) {
             super(source);
             this.vPosAttribLoc = this.initAttribute("aVertexPosition");
@@ -1058,6 +1143,10 @@ define("shaderPrograms/ScreenShaderProgram", ["require", "exports", "shaderProgr
             // Set screen size uniform
             rasterize_5.gl.uniform2f(this.uScreenSizeLoc, rasterize_5.WIDTH, rasterize_5.HEIGHT);
         }
+        /**
+         * Sets up the textures used by the shader.
+         * @param mainTexture All screen-space shaders use at least one texture and this sets which texture to use.
+         */
         setupTextures(mainTexture) {
             rasterize_5.gl.uniform1i(this.textureULoc, 0); // pass in the texture and active texture 0
             rasterize_5.gl.activeTexture(rasterize_5.gl.TEXTURE0);
@@ -1126,6 +1215,10 @@ define("shaderPrograms/SSAOShaderProgram", ["require", "exports", "shaderProgram
     Object.defineProperty(exports, "__esModule", { value: true });
     const SSAO_SCREEN_AREA = 0.05;
     class SSAOShaderProgram extends ScreenShaderProgram_1.ScreenShaderProgram {
+        /**
+         * Creates a new SSAOShaderProgram.
+         * @param source The shader source code.
+         */
         constructor(source, numSamples) {
             source.frag = source.frag.replace("{{num-samples}}", numSamples.toString());
             super(source);
@@ -1139,6 +1232,11 @@ define("shaderPrograms/SSAOShaderProgram", ["require", "exports", "shaderProgram
             }
             this.genRandomOffsetTexture();
         }
+        /**
+         * When the number of samples is low, it looks better to use the corners of cubes of decreasing size,
+         * rather than random vectors, as done in the article.
+         * @param numSamples The number of samples to generate vectors for.
+         */
         genCubeCornerVectors(numSamples) {
             let offsetScale = 0.01;
             let offsetScaleStep = 1 + 2.4 / numSamples;
@@ -1159,6 +1257,12 @@ define("shaderPrograms/SSAOShaderProgram", ["require", "exports", "shaderProgram
             // Set shader uniform to sample offets
             rasterize_7.gl.uniform3fv(this.sampleVectorsULoc, shaderVectors);
         }
+        /**
+         * Generates a new set of random sample vectors that fall within the sphere centered
+         * around the origin.  Since these are random, the effect will look slightly different every time
+         * the program is run or number of samples is changed.
+         * @param numSamples The number of samples to generate vectors for.
+         */
         genRandomVectors(numSamples) {
             // Geneate random sample offsets
             let sampleVectors = [];
@@ -1178,9 +1282,11 @@ define("shaderPrograms/SSAOShaderProgram", ["require", "exports", "shaderProgram
             // Set shader uniform to sample offets
             rasterize_7.gl.uniform3fv(this.sampleVectorsULoc, shaderVectors);
         }
-        begin() {
-            super.begin();
-        }
+        /**
+         * Generate a 4 x 4 texture of random vectors
+         * This version generates a normalized 2D vector in XY and zero in Z.
+         * These are used to rotate the sample kernel in screen space.
+         */
         genRandomOffsetTexture() {
             // Generate a 4 x 4 texture of random vectors
             let pixelData = [];
@@ -1201,6 +1307,10 @@ define("shaderPrograms/SSAOShaderProgram", ["require", "exports", "shaderProgram
             rasterize_7.gl.uniform1i(this.uOffsetsLoc, 1);
             rasterize_7.gl.bindTexture(rasterize_7.gl.TEXTURE_2D, null);
         }
+        /**
+         * Sets up the textures used by the shader.
+         * @param mainTexture All screen-space shaders use at least one texture and this sets which texture to use.
+         */
         setupTextures(mainTexture) {
             super.setupTextures(mainTexture);
             rasterize_7.gl.activeTexture(rasterize_7.gl.TEXTURE1);
@@ -1213,12 +1323,26 @@ define("shaderPrograms/SSAOShaderProgram", ["require", "exports", "shaderProgram
 define("shaderPrograms/SSAOBlurShaderProgram", ["require", "exports", "rasterize", "shaderPrograms/ScreenShaderProgram"], function (require, exports, rasterize_8, ScreenShaderProgram_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Shader program for depth-aware blur based on:
+     * A Gentle Introduction to Bilateral Filtering and its Applications
+     * Sylvain Paris, Pierre Kornprobst, Jack Tumblin, and Frédo Durand
+     * http://people.csail.mit.edu/sparis/bf_course/
+     */
     class SSAOBlurShaderProgram extends ScreenShaderProgram_2.ScreenShaderProgram {
+        /**
+         * Creates a new SSAOBlurShaderProgram.
+         * @param source The shader source code.
+         */
         constructor(source) {
             super(source);
             this.vPosAttribLoc = this.initAttribute("aVertexPosition");
             this.depthTextureUloc = this.initUniform("uDepthTexture");
         }
+        /**
+         * Sets up the textures used by the shader.
+         * @param mainTexture All screen-space shaders use at least one texture and this sets which texture to use.
+         */
         setupTextures(mainTexture) {
             super.setupTextures(mainTexture);
             rasterize_8.gl.activeTexture(rasterize_8.gl.TEXTURE1);
@@ -1231,13 +1355,25 @@ define("shaderPrograms/SSAOBlurShaderProgram", ["require", "exports", "rasterize
 define("shaderPrograms/SSAOMixShaderProgram", ["require", "exports", "rasterize", "shaderPrograms/ScreenShaderProgram"], function (require, exports, rasterize_9, ScreenShaderProgram_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Shader program responsible for the final mix of light color and calculated AO
+     * Can be used with either form of mixing depending on the shader source that is fed in.
+     */
     class SSAOMixShaderProgram extends ScreenShaderProgram_3.ScreenShaderProgram {
+        /**
+         * Creates a new SSAOMixShaderProgram.
+         * @param source The shader source code.
+         */
         constructor(source) {
             super(source);
             this.vPosAttribLoc = this.initAttribute("aVertexPosition");
             this.ssaoTextureUloc = this.initUniform("uSsaoTexture");
             this.ambientTextureUloc = this.initUniform("uAmbientTexture");
         }
+        /**
+         * Sets up the textures used by the shader.
+         * @param mainTexture All screen-space shaders use at least one texture and this sets which texture to use.
+         */
         setupTextures(mainTexture) {
             super.setupTextures(mainTexture);
             rasterize_9.gl.activeTexture(rasterize_9.gl.TEXTURE1);
@@ -1645,12 +1781,28 @@ define("shaderPrograms/SSAOPlusShaderProgram", ["require", "exports", "gl-matrix
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const SSAO_SCREEN_AREA = 0.05;
+    /**
+     * Fragment shader for SSAO+
+     * Augments standard version by rotating a hemisphere full of random
+     * samples to face away from the surface normal rather than simply
+     * using a sphere full of random samples.
+     */
     class SSAOPlusShaderProgram extends SSAOShaderProgram_1.SSAOShaderProgram {
+        /**
+         * Creates a new SSAOPlusShaderProgram.
+         * @param source The shader source code.
+         */
         constructor(source, numSamples) {
             super(source, numSamples);
             this.normalTextureUloc = this.initUniform("uNormals");
             this.genRandomHemisphereVectors(numSamples);
         }
+        /**
+         * Generates a new set of random sample vectors that fall within the hemisphere centered
+         * around +Y.  Since these are random, the effect will look slightly different every time
+         * the program is run or number of samples is changed.
+         * @param numSamples The number of samples to generate vectors for.
+         */
         genRandomHemisphereVectors(numSamples) {
             // Geneate random sample offsets
             let sampleVectors = [];
@@ -1673,6 +1825,10 @@ define("shaderPrograms/SSAOPlusShaderProgram", ["require", "exports", "gl-matrix
             // Set shader uniform to sample offets
             rasterize_11.gl.uniform3fv(this.sampleVectorsULoc, shaderVectors);
         }
+        /**
+         * Sets up the textures used by the shader.
+         * @param mainTexture All screen-space shaders use at least one texture and this sets which texture to use.
+         */
         setupTextures(mainTexture) {
             super.setupTextures(mainTexture);
             rasterize_11.gl.activeTexture(rasterize_11.gl.TEXTURE2);
@@ -1685,8 +1841,19 @@ define("shaderPrograms/SSAOPlusShaderProgram", ["require", "exports", "gl-matrix
 define("shaderPrograms/HBAOShaderProgram", ["require", "exports", "gl-matrix", "rasterize", "shaderPrograms/SSAOPlusShaderProgram"], function (require, exports, gl_matrix_9, rasterize_12, SSAOPlusShaderProgram_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const RAY_LENGTH_IN_PIXELS = 36;
+    const RAY_LENGTH_IN_PIXELS = 36; // The length in pixels of the radial rays used by HBAO
+    /**
+     * Program class for horizon-based AO
+     * Based on "Image-Space Horizon-Based Ambient Occlusion
+     * by Louis Bavoli and Miguel Sainz
+     * Published in ShaderX7
+     */
     class HBAOShaderProgram extends SSAOPlusShaderProgram_1.SSAOPlusShaderProgram {
+        /**
+         * Creates an HBAOShaderProgram.
+         * @param source The source code for the shader program.
+         * @param numSamples The number of AO samples to take.  The squareroot of this number will be used as both the number of rays and the samples per ray.
+         */
         constructor(source, numSamples) {
             // Divide samples evenly between rays and samples per ray
             let sqrtSamples = Math.floor(Math.sqrt(numSamples));
@@ -1695,9 +1862,12 @@ define("shaderPrograms/HBAOShaderProgram", ["require", "exports", "gl-matrix", "
             source.frag = source.frag.replace("{samples-per-ray}", sqrtSamples.toString());
             super(source, numSamples);
         }
+        /**
+         * Generate a 4 x 4 texture of random vectors
+         * This version generates 2 normalized 2D vectors, one in XY and one in YZ
+         * The first is used to rotate the ray direction and the second is used to jitter the sample positions.
+         */
         genRandomOffsetTexture() {
-            // Generate a 4 x 4 texture of random vectors
-            // This version generates 2 normalized 2D vectors, one in XY and one in YZ
             let pixelData = [];
             for (let i = 0; i < 32; ++i) {
                 let v = gl_matrix_9.vec2.create();
@@ -2053,7 +2223,7 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
                     let mMatrix = gl_matrix_10.mat4.create();
                     gl_matrix_10.mat4.fromRotationTranslationScale(mMatrix, instance.rotation, instance.position, instance.scale);
                     shader.setModelMatrix(mMatrix, vMatrix);
-                    trianglesDrawn += shader.draw(instance.data, instance.primitiveType);
+                    trianglesDrawn += shader.draw();
                 }
             }
             shader.end();

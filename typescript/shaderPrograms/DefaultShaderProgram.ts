@@ -4,23 +4,27 @@ import { vec3, mat4 } from "gl-matrix";
 import { MaterialData } from "../MaterialData";
 import { MeshData } from "../MeshData";
 
+/**
+ * Shader program used for rendering solid objects.
+ */
 export class DefaultShaderProgram extends ShaderProgram {
     useNormalMap: boolean;
-    
+    currentTriCount: number; // The number of triangles in the current mesh
+
     // Attributes
     vPosAttribLoc: number; // where to put position for vertex shader
     vNormAttribLoc: number; // where to put normal for vertex shader
-    vTangentAttribLoc: number;
-    vBinormalAttribLoc: number;
+    vTangentAttribLoc: number; // tangent vector location
+    vBinormalAttribLoc: number; // binormal vector location
     vUVAttribLoc: number; // where to put UV for vertex shader
-    
+
     // Uniforms
-    eyePositionULoc: WebGLUniformLocation;
-    lightAmbientULoc: WebGLUniformLocation;
-    lightDiffuseULoc: WebGLUniformLocation;
-    lightSpecularULoc: WebGLUniformLocation;
-    lightPositionULoc: WebGLUniformLocation;
-    mInvTransMVULoc: WebGLUniformLocation;
+    eyePositionULoc: WebGLUniformLocation; // eye position
+    lightAmbientULoc: WebGLUniformLocation; // ambient material color
+    lightDiffuseULoc: WebGLUniformLocation; // diffuse material color
+    lightSpecularULoc: WebGLUniformLocation; // specular material color
+    lightPositionULoc: WebGLUniformLocation; // light positions
+    mInvTransMVULoc: WebGLUniformLocation; // inverse transpose of model view matrix
     mMatrixULoc: WebGLUniformLocation; // where to put model matrix for vertex shader
     pvMatrixULoc: WebGLUniformLocation; // where to put project view matrix for vertex shader
     ambientULoc: WebGLUniformLocation; // where to put ambient reflecivity for fragment shader
@@ -28,9 +32,16 @@ export class DefaultShaderProgram extends ShaderProgram {
     specularULoc: WebGLUniformLocation; // where to put specular reflecivity for fragment shader
     shininessULoc: WebGLUniformLocation; // where to put specular exponent for fragment shader
     textureULoc: WebGLUniformLocation; // where to put texture for fragment shader
-    specTextureULoc: WebGLUniformLocation;
-    normalTextureULoc: WebGLUniformLocation;
+    specTextureULoc: WebGLUniformLocation; // specular texture location
+    normalTextureULoc: WebGLUniformLocation; // normal texture location
 
+    /**
+     * Creates a new DefaultShaderProgram.
+     * @param source Source code for the shader.
+     * @param Eye The current eye position.
+     * @param lights n An array of light positions.
+     * @param useNormalMap Whether to use normal mapping.
+     */
     constructor(source: ShaderSourceCode, Eye: vec3, lights: LightJson[], useNormalMap: boolean) {
         source.frag = source.frag.replace("{{num-lights}}", lights.length.toString());
         source.frag = source.frag.replace("{{use-normal-map}}", useNormalMap ? "#define USE_NORMAL_MAP" : "");
@@ -38,6 +49,7 @@ export class DefaultShaderProgram extends ShaderProgram {
         super(source);
 
         this.useNormalMap = useNormalMap;
+        this.currentTriCount = 0;
 
         this.vPosAttribLoc = this.initAttribute("aVertexPosition");
         this.vNormAttribLoc = this.initAttribute("aVertexNormal");
@@ -88,6 +100,10 @@ export class DefaultShaderProgram extends ShaderProgram {
         gl.uniform3fv(this.lightPositionULoc, position); // pass in the light's positions
     }
 
+    /**
+     * Sets the view projection matrix, as well as updating the eye position.  Applies to subsequent objects rendered with the shader.
+     * @param pvMatrix The view projection matrix.
+     */
     setViewProjectionMatrix(pvMatrix: mat4): void {
         // If the shader changed, set frame-constant values
         gl.uniform3fv(this.eyePositionULoc, Eye);
@@ -95,6 +111,11 @@ export class DefaultShaderProgram extends ShaderProgram {
         gl.uniformMatrix4fv(this.pvMatrixULoc, false, pvMatrix); // pass in the pv matrix
     }
 
+    /**
+     * Sets the model and view matricies.  Applies to subsequent objects rendered with the shader.
+     * @param mMatrix The model matrix.
+     * @param mView The view matrix.
+     */
     setModelMatrix(mMatrix: mat4, mView): void {
         gl.uniformMatrix4fv(this.mMatrixULoc, false, mMatrix); // pass in the m matrix
 
@@ -102,10 +123,14 @@ export class DefaultShaderProgram extends ShaderProgram {
         mat4.mul(mITMV, mView, mMatrix);
         mat4.invert(mITMV, mITMV);
         mat4.transpose(mITMV, mITMV);
-        
+
         gl.uniformMatrix4fv(this.mInvTransMVULoc, false, mITMV); // pass in the m matrix
     }
 
+    /**
+     * Sets material colors and textures.  Applies to subsequent objects rendered with the shader.
+     * @param material An object describing the material to use.
+     */
     setMaterial(material: MaterialData): void {
         // reflectivity: feed to the fragment shader
         gl.uniform3fv(this.ambientULoc, material.ambient); // pass in the ambient reflectivity
@@ -119,14 +144,14 @@ export class DefaultShaderProgram extends ShaderProgram {
             gl.uniform1i(this.textureULoc, 0); // pass in the texture and active texture 0
         }
 
-        if(material.specularTexture != null) {
+        if (material.specularTexture != null) {
             gl.activeTexture(gl.TEXTURE1); // bind to active texture 0 (the first)
             gl.bindTexture(gl.TEXTURE_2D, material.specularTexture.textureBuffer); // bind the set's texture
             gl.uniform1i(this.specTextureULoc, 1); // pass in the texture and active texture 1
         }
 
         if (this.useNormalMap) {
-            if(material.normalTexture != null) {
+            if (material.normalTexture != null) {
                 gl.activeTexture(gl.TEXTURE2); // bind to active texture 0 (the first)
                 gl.bindTexture(gl.TEXTURE_2D, material.normalTexture.textureBuffer); // bind the set's texture
                 gl.uniform1i(this.normalTextureULoc, 2); // pass in the texture and active texture 1
@@ -134,6 +159,10 @@ export class DefaultShaderProgram extends ShaderProgram {
         }
     }
 
+    /**
+     * Sets the mesh to use for subsequent renders with this shader.
+     * @param mesh An object containing mesh data such as verticies and texture coordinates.
+     */
     setMesh(mesh: MeshData): void {
         // position, normal and uv buffers: activate and feed into vertex shader
         gl.bindBuffer(gl.ARRAY_BUFFER, mesh.vertexBuffer); // activate position
@@ -146,20 +175,26 @@ export class DefaultShaderProgram extends ShaderProgram {
             gl.bindBuffer(gl.ARRAY_BUFFER, mesh.tangentBuffer);
             gl.vertexAttribPointer(this.vTangentAttribLoc, 3, gl.FLOAT, false, 0, 0); // feed
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, mesh.binormalBuffer); 
+            gl.bindBuffer(gl.ARRAY_BUFFER, mesh.binormalBuffer);
             gl.vertexAttribPointer(this.vBinormalAttribLoc, 3, gl.FLOAT, false, 0, 0); // feed
         }
 
         gl.bindBuffer(gl.ARRAY_BUFFER, mesh.uvBuffer); // activate uv
         gl.vertexAttribPointer(this.vUVAttribLoc, 2, gl.FLOAT, false, 0, 0); // feed
-        
+
         // Activate Index buffer
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, mesh.indexBuffer);
+
+        this.currentTriCount = mesh.triangles.length;
     }
 
-    draw(mesh: MeshData, primitiveType: number): number {
+    /**
+     * Draws the current mesh.
+     * @return The number of triangles drawn.
+     */
+    draw(): number {
         // Render triangles
-        gl.drawElements(primitiveType, mesh.triangles.length * 3, gl.UNSIGNED_SHORT, 0);
-        return mesh.triangles.length; 
+        gl.drawElements(gl.TRIANGLES, this.currentTriCount * 3, gl.UNSIGNED_SHORT, 0);
+        return this.currentTriCount;
     }
 }

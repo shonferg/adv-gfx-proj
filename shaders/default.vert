@@ -1,4 +1,6 @@
 #version 300 es
+// Vertex shader used when drawing solid objects.  
+// Includes optional export of tangent and binormal when they are in use.
 
 {{use-normal-map}}
 

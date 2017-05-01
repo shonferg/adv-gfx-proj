@@ -1,4 +1,9 @@
 #version 300 es
+// Fragment shader for simple unsharpen mask AO technique
+// Based on "Variance Methods for Screen-Space Ambient Occlusion
+// by Angelo Pesce
+// Published in Shader X7
+
 precision mediump float; // set float to medium precision
 
 // texture properties
@@ -13,6 +18,7 @@ in vec2 vTexCoord; // texture uv of fragment
 // Output
 out vec4 oColor;
 
+// Gets the eye-space depth at the given screen-space UV coordinate
 float getDepth(vec2 uv) {
     vec4 pos = texture(uDepthTexture, uv);
     return pos.z / pos.w;

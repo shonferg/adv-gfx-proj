@@ -1,4 +1,9 @@
 #version 300 es
+// Fragment shader for SSAO+
+// Augments standard version by rotating a hemisphere full of random
+// samples to face away from the surface normal rather than simply
+// using a sphere full of random samples.
+
 precision mediump float; // set float to medium precision
 
 // texture properties
@@ -18,11 +23,13 @@ in vec2 vTexCoord; // texture uv of fragment
 // Output
 out vec4 oColor;
 
+// Gets the distance to the camera at a given screen-space uv coordinate.
 float getDepth(vec2 uv) {
     vec4 pos = texture(uTexture, uv);
     return pos.w;
 }
 
+// Gets the eye-space normal at a given screen-space uv coordinate.
 vec3 getNormal(vec2 uv) {
     return texture(uNormals, uv).xzy * 2.0 - 1.0;
 }

@@ -445,7 +445,7 @@ function renderModels() {
 
                 shader.setModelMatrix(mMatrix, vMatrix);
 
-                trianglesDrawn += shader.draw(instance.data, instance.primitiveType);
+                trianglesDrawn += shader.draw();
             }
         }
 

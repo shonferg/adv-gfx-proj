@@ -1,8 +1,10 @@
 #version 300 es
-
-{{use-normal-map}}
+// Fragment shader used when drawing solid objects.  
+// Includes lighting and normal mapping, as well as output to all MRT buffers
 
 precision mediump float; // set float to medium precision
+
+{{use-normal-map}}
 
 const int LIGHT_COUNT = {{num-lights}}; // Will be replaced by JavaScript before building shader
 const float LIGHT_RADIUS = 6.0;

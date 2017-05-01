@@ -6,12 +6,22 @@ import { SSAOShaderProgram } from "./SSAOShaderProgram";
 
 const SSAO_SCREEN_AREA: number = 0.05;
 
+/**
+ * Fragment shader for SSAO+
+ * Augments standard version by rotating a hemisphere full of random
+ * samples to face away from the surface normal rather than simply
+ * using a sphere full of random samples.
+ */
 export class SSAOPlusShaderProgram extends SSAOShaderProgram {
     normalTextureUloc: WebGLUniformLocation;
 
     // Textures
     normalTexture: WebGLTexture;
 
+    /**
+     * Creates a new SSAOPlusShaderProgram.
+     * @param source The shader source code.
+     */
     constructor(source: ShaderSourceCode, numSamples: number) {
         super(source, numSamples);
 
@@ -20,7 +30,13 @@ export class SSAOPlusShaderProgram extends SSAOShaderProgram {
         this.genRandomHemisphereVectors(numSamples);
     }
 
-    genRandomHemisphereVectors(numSamples: number) {
+    /**
+     * Generates a new set of random sample vectors that fall within the hemisphere centered
+     * around +Y.  Since these are random, the effect will look slightly different every time
+     * the program is run or number of samples is changed.
+     * @param numSamples The number of samples to generate vectors for.
+     */
+    genRandomHemisphereVectors(numSamples: number): void {
         // Geneate random sample offsets
         let sampleVectors: vec3[] = [];
         let temp: vec3 = vec3.create();
@@ -31,7 +47,6 @@ export class SSAOPlusShaderProgram extends SSAOShaderProgram {
             if (vec3.dot(centralVector, temp) <= 0) {
                 sampleVectors.push(vec3.clone(temp));
             }
-
         }
 
         // Convert vectors for shader
@@ -47,7 +62,11 @@ export class SSAOPlusShaderProgram extends SSAOShaderProgram {
         gl.uniform3fv(this.sampleVectorsULoc, shaderVectors);
     }
 
-    setupTextures(mainTexture: WebGLTexture) {
+    /**
+     * Sets up the textures used by the shader.
+     * @param mainTexture All screen-space shaders use at least one texture and this sets which texture to use.
+     */
+    setupTextures(mainTexture: WebGLTexture): void {
         super.setupTextures(mainTexture);
 
         gl.activeTexture(gl.TEXTURE2);

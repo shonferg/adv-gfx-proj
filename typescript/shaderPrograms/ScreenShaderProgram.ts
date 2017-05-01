@@ -1,6 +1,9 @@
 import { ShaderProgram, ShaderSourceCode, OptionalUniform } from "./ShaderProgram";
 import { gl, WIDTH, HEIGHT } from "../rasterize";
 
+/**
+ * Base class used by all full screen shader programs.  Used with a full-screen quad to apply an effect to the whole screen.
+ */
 export class ScreenShaderProgram extends ShaderProgram {
     // Attributes
     vPosAttribLoc: number; // where to put position for vertex shader
@@ -13,6 +16,10 @@ export class ScreenShaderProgram extends ShaderProgram {
     invVMatrix: OptionalUniform;
     invPMatrix: OptionalUniform;
 
+    /**
+     * Creates a new ScreenShaderProgram.
+     * @param source The source code for the shader.
+     */
     constructor(source: ShaderSourceCode) {
         super(source);
 
@@ -31,7 +38,11 @@ export class ScreenShaderProgram extends ShaderProgram {
         gl.uniform2f(this.uScreenSizeLoc, WIDTH, HEIGHT);
     }
 
-    setupTextures(mainTexture: WebGLTexture) {
+    /**
+     * Sets up the textures used by the shader.
+     * @param mainTexture All screen-space shaders use at least one texture and this sets which texture to use.
+     */
+    setupTextures(mainTexture: WebGLTexture): void {
         gl.uniform1i(this.textureULoc, 0); // pass in the texture and active texture 0
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, mainTexture); // bind the set's texture

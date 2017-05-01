@@ -1,4 +1,7 @@
 #version 300 es
+// Fragment shader responsible for the final mix of light color and calculated AO
+// This variant applies the AO only to ambient light
+
 precision mediump float; // set float to medium precision
 
 // texture properties

@@ -2,6 +2,10 @@ import { gl } from "../rasterize";
 import { ScreenShaderProgram } from "./ScreenShaderProgram";
 import { ShaderSourceCode } from "./ShaderProgram";
 
+/**
+ * Shader program responsible for the final mix of light color and calculated AO
+ * Can be used with either form of mixing depending on the shader source that is fed in.
+ */
 export class SSAOMixShaderProgram extends ScreenShaderProgram {
     // Uniforms
     ssaoTextureUloc: WebGLUniformLocation;
@@ -11,6 +15,10 @@ export class SSAOMixShaderProgram extends ScreenShaderProgram {
     ssaoTexture: WebGLTexture;
     ambientTexture: WebGLTexture;
 
+    /**
+     * Creates a new SSAOMixShaderProgram.
+     * @param source The shader source code.
+     */
     constructor(source: ShaderSourceCode) {
         super(source);
 
@@ -18,11 +26,13 @@ export class SSAOMixShaderProgram extends ScreenShaderProgram {
 
         this.ssaoTextureUloc = this.initUniform("uSsaoTexture");
         this.ambientTextureUloc = this.initUniform("uAmbientTexture");
-
-        
     }
 
-    setupTextures(mainTexture: WebGLTexture) {
+    /**
+     * Sets up the textures used by the shader.
+     * @param mainTexture All screen-space shaders use at least one texture and this sets which texture to use.
+     */
+    setupTextures(mainTexture: WebGLTexture): void {
         super.setupTextures(mainTexture);
 
         gl.activeTexture(gl.TEXTURE1);

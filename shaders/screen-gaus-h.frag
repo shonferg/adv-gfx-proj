@@ -1,4 +1,6 @@
 #version 300 es
+// A fragment shader that implements a horizontal gaussian blur 
+
 precision mediump float; // set float to medium precision
 
 const float PI = 3.1415926535897932384626433832795;
@@ -17,6 +19,8 @@ in vec2 vTexCoord; // texture uv of fragment
 // Output
 out vec4 oColor;
 
+// Gausian function.  Would be faster to precalculate, but doing it here
+// makes it simpler to alter the radius.
 float gaus(float v) {
     return 1.0 / (2.0 * PI * SIGMA2) * exp(-(v * v) / 2.0 * SIGMA2);
 }
@@ -27,6 +31,8 @@ void main(void) {
     vec4 accum = vec4(0);
     float total = 0.0;
 
+    // Sample each pixel in a horizontal line centered at the current pixel and
+    // use the gaus function to determine its contribution to the final result.
     for (int x = -RADIUS; x < RADIUS; ++x) {
         vec2 offsetCoord = vTexCoord + vec2(x, 0) * screenStep;
         vec4 samp = texture(uTexture, offsetCoord);

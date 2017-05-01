@@ -1,4 +1,7 @@
 #version 300 es
+// Fragment shader for visualizing normals
+// It shows the absolute value of the normal to make it easier to tell that things are facing the right way
+
 precision mediump float; // set float to medium precision
 
 // texture properties

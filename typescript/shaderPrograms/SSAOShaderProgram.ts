@@ -12,7 +12,11 @@ export class SSAOShaderProgram extends ScreenShaderProgram {
 
     // Textures
     offsetTexture: WebGLTexture;
-    
+
+    /**
+     * Creates a new SSAOShaderProgram.
+     * @param source The shader source code.
+     */
     constructor(source: ShaderSourceCode, numSamples: number) {
         source.frag = source.frag.replace("{{num-samples}}", numSamples.toString());
         super(source);
@@ -29,8 +33,12 @@ export class SSAOShaderProgram extends ScreenShaderProgram {
         this.genRandomOffsetTexture();
     }
 
+    /**
+     * When the number of samples is low, it looks better to use the corners of cubes of decreasing size,
+     * rather than random vectors, as done in the article.
+     * @param numSamples The number of samples to generate vectors for.
+     */
     genCubeCornerVectors(numSamples: number) {
-
         let offsetScale = 0.01;
         let offsetScaleStep = 1 + 2.4 / numSamples;
         let shaderVectors: number[] = [];
@@ -55,6 +63,12 @@ export class SSAOShaderProgram extends ScreenShaderProgram {
         gl.uniform3fv(this.sampleVectorsULoc, shaderVectors);
     }
 
+    /**
+     * Generates a new set of random sample vectors that fall within the sphere centered
+     * around the origin.  Since these are random, the effect will look slightly different every time
+     * the program is run or number of samples is changed.
+     * @param numSamples The number of samples to generate vectors for.
+     */
     genRandomVectors(numSamples: number) {
         // Geneate random sample offsets
         let sampleVectors: vec3[] = [];
@@ -78,10 +92,11 @@ export class SSAOShaderProgram extends ScreenShaderProgram {
         gl.uniform3fv(this.sampleVectorsULoc, shaderVectors);
     }
 
-    begin() {
-        super.begin();
-    }
-
+    /**
+     * Generate a 4 x 4 texture of random vectors
+     * This version generates a normalized 2D vector in XY and zero in Z.
+     * These are used to rotate the sample kernel in screen space.
+     */
     genRandomOffsetTexture() {
         // Generate a 4 x 4 texture of random vectors
         let pixelData: number[] = [];
@@ -105,7 +120,11 @@ export class SSAOShaderProgram extends ScreenShaderProgram {
         gl.bindTexture(gl.TEXTURE_2D, null);
     }
 
-    setupTextures(mainTexture: WebGLTexture) {
+    /**
+     * Sets up the textures used by the shader.
+     * @param mainTexture All screen-space shaders use at least one texture and this sets which texture to use.
+     */
+    setupTextures(mainTexture: WebGLTexture): void {
         super.setupTextures(mainTexture);
 
         gl.activeTexture(gl.TEXTURE1);

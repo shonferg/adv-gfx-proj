@@ -1,4 +1,9 @@
 #version 300 es
+// Fragment shader for horizon-based AO
+// Based on "Image-Space Horizon-Based Ambient Occlusion
+// by Louis Bavoli and Miguel Sainz
+// Published in ShaderX7
+
 precision mediump float; // set float to medium precision
 
 // texture properties
@@ -25,6 +30,7 @@ in vec2 vTexCoord; // texture uv of fragment
 // Output
 out vec4 oColor;
 
+// Gets the eye-space position at a particular screen UV coordinate
 vec3 getPosition(vec2 uv) {
     vec4 pos = texture(uTexture, uv);
     pos.xyz /= pos.w;
@@ -32,6 +38,7 @@ vec3 getPosition(vec2 uv) {
     return pos.xyz;
 }
 
+// Gets the eye-space normal at a particular screen UV coordinate
 vec3 getNormal(vec2 uv) {
     return texture(uNormals, uv).xzy * 2.0 - 1.0;
 }

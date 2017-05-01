@@ -1,4 +1,9 @@
 #version 300 es
+// Fragment shader for screen-space AO
+// Based on "Screen-Space Ambient Occlusion
+// by Vladimir Kajalin
+// Published in ShaderX7
+
 precision mediump float; // set float to medium precision
 
 // texture properties
@@ -17,6 +22,7 @@ in vec2 vTexCoord; // texture uv of fragment
 // Output
 out vec4 oColor;
 
+// Gets distance from camera at the given screen UV coordinate
 float getDepth(vec2 uv)
 {
     vec4 pos = texture(uTexture, uv);

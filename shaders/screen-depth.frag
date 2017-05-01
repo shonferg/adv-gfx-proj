@@ -1,4 +1,7 @@
 #version 300 es
+// A fragment shader for visualizing the depth buffer.
+// It is also used as part of the process for creating a blurred depth buffer for the unsharpen mask shader.
+
 precision mediump float; // set float to medium precision
 
 // texture properties
