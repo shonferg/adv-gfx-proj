@@ -40,7 +40,7 @@ The program is written with [TypeScript](http://www.typescriptlang.org), which i
 ### Build Steps
 1. Download and install [Node.js](https://nodejs.org/en/), if it is not already intalled.  Even if you have an existing installation, you may want to update it the latest to avoid any potential problems with the rest of the steps.
 2. Clone the github repository to a local folder
-3. Open a command promjpt and navigate to the repository folder
+3. Open a command prompt and navigate to the repository folder
 4. Use Node.js to install TypeScript globally with this command (Note: Some of these may require sudo on Mac or Linux):
 ```
 npm install -g typescript
