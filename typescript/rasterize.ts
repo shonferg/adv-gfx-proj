@@ -18,7 +18,7 @@ import { SSAOMixShaderProgram } from "./shaderPrograms/SSAOMixShaderProgram";
 import { ObjModelNode } from "./ObjModelNode";
 import { SSAOPlusShaderProgram } from "./shaderPrograms/SSAOPlusShaderProgram";
 import { HBAOShaderProgram } from "./shaderPrograms/HBAOShaderProgram";
-import { getJSONFile } from "./util";
+import { getJSONFile, ShaderFileNames, requestShaders } from "./util";
 
 /* GLOBAL CONSTANTS AND VARIABLES */
 
@@ -99,8 +99,11 @@ export let Center: vec3 = vec3.clone(defaultCenter); // view direction in world 
 export let Up: vec3 = vec3.clone(defaultUp); // view up vector in world space
 export let viewDelta: number = 0.1; // how much to displace view with each key press
 
-// does stuff when keys are pressed
-function handleKeyDown(event: KeyboardEvent) {
+/**
+ * Handles keyboard events.
+ * @param event The keyboard event to handle.
+ */
+function handleKeyDown(event: KeyboardEvent): void {
 
     // set up needed view params
     let lookAt = vec3.create(), viewRight = vec3.create(), temp = vec3.create(); // lookat, right & temp vectors
@@ -159,8 +162,10 @@ function handleKeyDown(event: KeyboardEvent) {
     }
 }
 
-// set up the webGL environment
-function setupWebGL() {
+/**
+ * Sets up the WebGL environment.
+ */
+function setupWebGL(): void {
 
     // Set up keys
     document.onkeydown = handleKeyDown; // call this when key pressed
@@ -265,6 +270,7 @@ let lastScrapingGain = 0;
 let footstepBuffer: SoundBuffer;
 let scrapingBuffer: SoundBuffer;
 
+/** Model JSON format */
 interface ModelJson {
     objFile: string,
     mtlFile: string,
@@ -275,6 +281,7 @@ interface ModelJson {
     material: MaterialJson;
 }
 
+/** Light JSON format */
 export interface LightJson {
     position: number[];
     ambient: number[];
@@ -282,24 +289,30 @@ export interface LightJson {
     specular: number[];
 }
 
+/** Scene JSON format */
 interface SceneJson {
     lights: LightJson[];
     characters: ModelJson[];
     environment: ModelJson[];
 }
 
+/** Used to group materials for draw sorting */
 class MaterialGrouping {
     material: MaterialData;
     instances: MeshInstance[] = [];
 }
 
+/** Used to group shaders for draw sorting */
 class ShaderGrouping {
     shader: DefaultShaderProgram;
     materials: MaterialGrouping[] = [];
 }
 
-// read models in, load them into webgl buffers
-function setupScene(scene: SceneJson) {
+/**
+ * Read scene files and create models from OBJ files.
+ * @param scene 
+ */
+function setupScene(scene: SceneJson): void {
 
     if (scene == null) {
         throw "Unable to load scene file!";
@@ -319,7 +332,12 @@ function setupScene(scene: SceneJson) {
     }
 }
 
-function loadModel(m: ModelJson, parent: TreeNode) {
+/**
+ * Loads a particular model in a scene file.
+ * @param m The data for the model to load.
+ * @param parent The tree node to parent the newly created model node to.
+ */
+function loadModel(m: ModelJson, parent: TreeNode): void {
     let pos = vec3.fromValues(m.position[0], m.position[1], m.position[2]);
     let scale = vec3.fromValues(m.scale, m.scale, m.scale);
 
@@ -330,8 +348,10 @@ function loadModel(m: ModelJson, parent: TreeNode) {
 
 let frameTimes = [];
 
-// render the loaded model
-function renderModels() {
+/**
+ * Renders the scene.
+ */
+function renderModels(): void {
 
     let frameStartTime = performance.now();
 
@@ -399,6 +419,7 @@ function renderModels() {
     }
 
     // Organize visible objects by shader, then material
+    // This should improve render speed to some degree by reducing state-changes
     let shaders: ShaderGrouping[] = [];
     let currentShader: ShaderGrouping;
     let currentMaterial: MaterialGrouping;
@@ -451,8 +472,6 @@ function renderModels() {
 
         shader.end();
     }
-
-    TreeNode.endShader();
 
     if (aoEnabled || currentBuffer != DisplayBuffers.Combined) {
         // Switch to the offscreen frame buffer and draw SSAO to offscreen texture
@@ -643,7 +662,7 @@ export let gausVertProgram: ScreenShaderProgram;
 export let gausHorizProgram: ScreenShaderProgram;
 export let unsharpenMaskProgram: SSAOBlurShaderProgram;
 
-/* MAIN -- HERE is where execution begins after window load */
+/** This is where execution begins after window load */
 export async function main() {
 
     // set up the webGL environment
@@ -709,6 +728,9 @@ export async function main() {
     renderModels();
 }
 
+/**
+ * Must be called whenever the sample count is changed to reload AO shaders that match the new sample count.
+ */
 async function updateSampleCount() {
     let shaderFiles: ShaderFileNames[] = [];
     shaderFiles["ssao"] = new ShaderFileNames("screen", "screen-ssao");
@@ -721,30 +743,4 @@ async function updateSampleCount() {
     ssaoShaderProgram = new SSAOShaderProgram(shaderSource["ssao"], sampleCounts[sampleCountIndex]);
     ssaoPlusShaderProgram = new SSAOPlusShaderProgram(shaderSource["ssaoPlus"], sampleCounts[sampleCountIndex]);
     hbaoShaderProgram = new HBAOShaderProgram(shaderSource["hbao"], sampleCounts[sampleCountIndex]);
-}
-
-class ShaderFileNames {
-    constructor(public frag: string, public vert: string) { }
-}
-
-function requestShaders(input: ShaderFileNames[]): Promise<ShaderSourceCode[]> {
-    return new Promise(async function (resolve, reject) {
-        let promises: Promise<ShaderSourceCode>[] = [];
-
-        // Initiate all async actions
-        for (let key in input) {
-            let item: ShaderFileNames = input[key];
-            promises[key] = ShaderProgram.fetchSource(item.frag, item.vert);
-        }
-
-        let results: ShaderSourceCode[] = [];
-
-        // Await all results
-        for (let key in promises) {
-            let item: Promise<ShaderSourceCode> = promises[key];
-            results[key] = await item;
-        }
-
-        resolve(results);
-    });
 }

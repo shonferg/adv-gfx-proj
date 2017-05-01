@@ -223,6 +223,9 @@ export class Plane {
     }
 }
 
+/**
+ * Used internally by the clipConvexPolygon function.
+ */
 interface ClassifiedVertex {
     v: vec3;
     dist: number

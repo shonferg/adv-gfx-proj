@@ -1,5 +1,9 @@
 import { gl, INPUT_URL } from "./rasterize";
 
+/**
+ * Contains all data required for one OpenGL texture.  
+ * Ensures that any given texture is only loaded one time, and subsequent requests for the texture result in a reference to the existing one.
+ */
 export class TextureData {
     textureBuffer: WebGLTexture;
     textureImage: HTMLImageElement;
@@ -7,6 +11,10 @@ export class TextureData {
 
     static textureCache: Promise<TextureData>[] = [];
 
+    /**
+     * Creates a new 1x1 solid color texture.  Can be used as a place-holder, or to send a solid color into a shader that normally expects a texture.
+     * @param color The color to fill the texture with.
+     */
     static fromColor(color: Uint8Array): TextureData {
         // load a 1x1 gray image into texture for use when no texture, and until texture loads
         let newData = new TextureData();

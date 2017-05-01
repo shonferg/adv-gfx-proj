@@ -7,12 +7,18 @@ import { INPUT_URL, normalMapShaderProgram, defaultShaderProgram } from "./raste
 import { MaterialData, MaterialJson } from "./MaterialData";
 import { getTextFile } from "./util";
 
+/**
+ * Intermediate vertex format used during OBJ loading
+ */
 class ObjVertex {
     positionIndex: number;
     normalIndex: number;
     texCoordIndex: number;
 }
 
+/**
+ * Intermediate mesh format used during OBJ loading
+ */
 class ObjMesh {
     groupName: string;
     materialName: string;
@@ -23,15 +29,17 @@ class ObjMesh {
  * A version of MeshData which loads limited information from OBJ files into WebGL buffers.
  */
 export class ObjModelNode extends TreeNode {
-    constructor() {
-        super();
-    }
 
     /**
      * Decodes a subset of the OBJ file format.
      * Based on the OBJ file spec:
      * http://www.cs.utah.edu/~boulos/cs3505/obj_spec.pdf
-     * @param text OBJ file text
+     * @param objUrl The URL of the OBJ file to load.
+     * @param mtlUrl The URL of the MTL file to load or null if there is not one.
+     * @param position The position to place the newly created mesh instances.
+     * @param scale The scale to apply to the newly created mesh instances.
+     * @param scaleTo1by1 Whether or not the OBJ file should be scaled to fit within a 1x1x1 cube.
+     * @param defaultMaterial The material to use if the MTL file does not contain a definition that matches the OBJ file, or when there is no MTL file.
      */
     static create(objUrl: string, mtlUrl: string, position: vec3, scale: vec3, scaleTo1by1: boolean, defaultMaterial: MaterialJson): Promise<ObjModelNode> {
         return new Promise(async function (resolve, reject) {
@@ -291,6 +299,14 @@ export class ObjModelNode extends TreeNode {
         });
     }
 
+    /**
+     * Converts OBJ faces, which may share UVs, Normals, etc., to the unique combinations that WebGL requires.
+     * @param m The mesh to convert.
+     * @param objPositions A list of all position vectors in the OBJ file.
+     * @param objNormals A list of all the normals in the OBJ file.
+     * @param objTexCoords A list of all texture coordinates in the OBJ file.
+     * @return A MeshData object containing the converted data.
+     */
     static processMesh(m: ObjMesh, objPositions: vec3[], objNormals: vec3[], objTexCoords: vec2[]): Promise<MeshData> {
         return new Promise(async function (resolve, reject) {
             // Convert OBJ faces to unique vertex/texture/normal combinations
@@ -343,27 +359,14 @@ export class ObjModelNode extends TreeNode {
         });
     }
 
+    /**
+     * Process MTL file to extract material data.
+     * @param mtlFileText The text of teh MTL file.
+     * @param defaultMaterial The material to use if no material in the MTL file matches the name in the OBJ file.
+     * @return A list of material info in the same format as JSON material files, which can be used to create MaterialData.
+     */
     static processMtlFile(mtlFileText: string, defaultMaterial: MaterialJson): MaterialJson[] {
         let materials: MaterialJson[] = [];
-
-        /* Ex
-        newmtl leaf
-            Ns 10.0000
-            Ni 1.5000
-            d 1.0000
-            Tr 0.0000
-            Tf 1.0000 1.0000 1.0000 
-            illum 2
-            Ka 0.5880 0.5880 0.5880
-            Kd 0.5880 0.5880 0.5880
-            Ks 0.0000 0.0000 0.0000
-            Ke 0.0000 0.0000 0.0000
-            map_Ka sponza/textures/sponza_thorn_diff.png
-            map_Kd sponza/textures/sponza_thorn_diff.png
-            map_d sponza/textures/sponza_thorn_mask.png
-            map_bump sponza/textures/sponza_thorn_ddn.png
-            bump sponza/textures/sponza_thorn_ddn.png
-        */
 
         let currentMaterial: MaterialJson = null;
         let currentMaterialName: string = null;

@@ -2,6 +2,9 @@ import { vec3, vec2 } from "gl-matrix";
 import { gl } from "./rasterize";
 import { MaterialJson } from "./MaterialData";
 
+/**
+ * Format for triangle JSON files
+ */
 export interface TriangleJson {
     material: MaterialJson;
     vertices: number[][];
@@ -10,6 +13,9 @@ export interface TriangleJson {
     triangles: number[][];
 }
 
+/**
+ * Format for meshs created within the program.
+ */
 export interface Mesh {
     vertices: vec3[];
     triangles: number[][];

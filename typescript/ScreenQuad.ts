@@ -3,6 +3,9 @@ import { ShaderProgram } from "./shaderPrograms/ShaderProgram";
 import { ScreenShaderProgram } from "./shaderPrograms/ScreenShaderProgram";
 import { mat4, vec4 } from "gl-matrix";
 
+/**
+ * Represents a scree-filling quad used to render full-screen effects.
+ */
 export class ScreenQuad {
     static vertices = new Float32Array([
         1, 1,
@@ -19,6 +22,9 @@ export class ScreenQuad {
     invVMatrix: mat4;
     invPMatrix: mat4;
 
+    /**
+     * Creates a new ScreenQuad.
+     */
     constructor() {
         this.vertexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
@@ -29,6 +35,13 @@ export class ScreenQuad {
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, ScreenQuad.indices, gl.STATIC_DRAW);
     }
 
+    /**
+     * Sets various view and projection matricies which may be used by full screen shaders.
+     * @param pMatrix The projection matrix.
+     * @param vMatrix The view matrix.
+     * @param invPMatrix The inverse projection matrix.
+     * @param invVMatrix The inverse view matrix.
+     */
     setProjection(pMatrix: mat4, vMatrix: mat4, invPMatrix: mat4, invVMatrix: mat4): void {
         this.pMatrix = pMatrix;
         this.vMatrix = vMatrix;
@@ -36,6 +49,11 @@ export class ScreenQuad {
         this.invVMatrix = invVMatrix;
     }
 
+    /**
+     * Renders the screen-filling quad using the given shader program and main texture.
+     * @param program The shader program to draw with.
+     * @param texture The main texture to use when drawing.  Additional textures may need to be set on the program depending on type.
+     */
     draw(program: ScreenShaderProgram, texture: WebGLTexture) {
         // Activate program
         program.begin();

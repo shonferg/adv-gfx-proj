@@ -32,6 +32,12 @@ export class MeshInstance extends TreeNode {
         this.primitiveType = gl.TRIANGLES;
     }
 
+    /**
+     * Used to create a list of objects that pass the view frustum culling test which can be further sorted before rendering.
+     * @param frustum The frustum to cull against.
+     * @param drawAll Whether or not to ignore future fustum checks.
+     * @param visibleSet The visible set array to append objects that pass the culling tests.
+     */
     appendVisibleSet(frustum: Frustum, drawAll: boolean, visibleSet: MeshInstance[]): void {
         
         // Try to cull AABB against the frustum

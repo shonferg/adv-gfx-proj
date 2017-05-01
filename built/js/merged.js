@@ -421,7 +421,15 @@ define("AABB", ["require", "exports", "gl-matrix"], function (require, exports, 
 define("TextureData", ["require", "exports", "rasterize"], function (require, exports, rasterize_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Contains all data required for one OpenGL texture.
+     * Ensures that any given texture is only loaded one time, and subsequent requests for the texture result in a reference to the existing one.
+     */
     class TextureData {
+        /**
+         * Creates a new 1x1 solid color texture.  Can be used as a place-holder, or to send a solid color into a shader that normally expects a texture.
+         * @param color The color to fill the texture with.
+         */
         static fromColor(color) {
             // load a 1x1 gray image into texture for use when no texture, and until texture loads
             let newData = new TextureData();
@@ -556,15 +564,9 @@ define("MaterialData", ["require", "exports", "gl-matrix", "TextureData"], funct
     MaterialData.nextIndex = 0;
     exports.MaterialData = MaterialData;
 });
-define("util", ["require", "exports"], function (require, exports) {
+define("util", ["require", "exports", "shaderPrograms/ShaderProgram"], function (require, exports, ShaderProgram_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    /**
-     * Reads a text file
-     * Based on an example from Mozilla Developer Network to use ES6 Promise with an XMLHttpRequest:
-     * https://github.com/mdn/js-examples/blob/master/promises-test/index.html
-     * @param url The URL of the text file to load
-     */
     function getTextFile(url) {
         // Create new promise with the Promise() constructor;
         // This has as its argument a function
@@ -632,6 +634,44 @@ define("util", ["require", "exports"], function (require, exports) {
         });
     }
     exports.getJSONFile = getJSONFile;
+    /** Holds the names of shader file pairs to make it easier to request them together */
+    class ShaderFileNames {
+        /**
+         * Creates a new ShaderFileNames object.
+         * @param frag The fragment shader file name.
+         * @param vert The vertex shader file name.
+         */
+        constructor(frag, vert) {
+            this.frag = frag;
+            this.vert = vert;
+        }
+    }
+    exports.ShaderFileNames = ShaderFileNames;
+    /**
+     * A helper function to request several shaders at the same time.  Will only resolve the promise when all shaders are loaded.
+     * @param input An array of shader file name objects.
+     * @return An equivalently sized list of resolved ShaderSourceCode objects with an array key matching the key in the original array.
+     */
+    function requestShaders(input) {
+        return new Promise(function (resolve, reject) {
+            return __awaiter(this, void 0, void 0, function* () {
+                let promises = [];
+                // Initiate all async actions
+                for (let key in input) {
+                    let item = input[key];
+                    promises[key] = ShaderProgram_1.ShaderProgram.fetchSource(item.frag, item.vert);
+                }
+                let results = [];
+                // Await all results
+                for (let key in promises) {
+                    let item = promises[key];
+                    results[key] = yield item;
+                }
+                resolve(results);
+            });
+        });
+    }
+    exports.requestShaders = requestShaders;
 });
 define("shaderPrograms/ShaderProgram", ["require", "exports", "rasterize", "util"], function (require, exports, rasterize_2, util_1) {
     "use strict";
@@ -765,13 +805,13 @@ define("shaderPrograms/ShaderProgram", ["require", "exports", "rasterize", "util
     ShaderProgram.nextIndex = 0;
     exports.ShaderProgram = ShaderProgram;
 });
-define("shaderPrograms/DefaultShaderProgram", ["require", "exports", "shaderPrograms/ShaderProgram", "rasterize", "gl-matrix"], function (require, exports, ShaderProgram_1, rasterize_3, gl_matrix_4) {
+define("shaderPrograms/DefaultShaderProgram", ["require", "exports", "shaderPrograms/ShaderProgram", "rasterize", "gl-matrix"], function (require, exports, ShaderProgram_2, rasterize_3, gl_matrix_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * Shader program used for rendering solid objects.
      */
-    class DefaultShaderProgram extends ShaderProgram_1.ShaderProgram {
+    class DefaultShaderProgram extends ShaderProgram_2.ShaderProgram {
         /**
          * Creates a new DefaultShaderProgram.
          * @param source Source code for the shader.
@@ -926,6 +966,13 @@ define("TreeNode", ["require", "exports", "AABB"], function (require, exports, A
             this.aabb = AABB_1.AABB.createEmpty();
             this.children = [];
         }
+        /**
+         * Used to create a list of objects that pass the view frustum culling test which can be further sorted before rendering.
+         * Called recursively on child nodes and mesh instances to gather a list of all visible objects in a given tree.
+         * @param frustum The frustum to cull against.
+         * @param drawAll Whether or not to ignore future fustum checks.
+         * @param visibleSet The visible set array to append objects that pass the culling tests.
+         */
         appendVisibleSet(frustum, drawAll, visibleSet) {
             // Try to cull AABB against the frustum
             if (drawAll == false) {
@@ -951,24 +998,6 @@ define("TreeNode", ["require", "exports", "AABB"], function (require, exports, A
                 // Update bounds of child and then combine it into the bounds of this object
                 child.updateBounds();
                 this.aabb = AABB_1.AABB.merge(this.aabb, child.aabb);
-            }
-        }
-        static beginShader(newShader) {
-            if (TreeNode.currentShader == newShader) {
-                // The shader is already active.  Do nothing.
-                return false;
-            }
-            // End previous shader, if any
-            TreeNode.endShader();
-            // Set new shader and begin using it
-            TreeNode.currentShader = newShader;
-            TreeNode.currentShader.begin();
-            return true;
-        }
-        static endShader() {
-            if (TreeNode.currentShader != null) {
-                TreeNode.currentShader.end();
-                TreeNode.currentShader = null;
             }
         }
     }
@@ -997,6 +1026,12 @@ define("MeshInstance", ["require", "exports", "gl-matrix", "rasterize", "AABB", 
             this.scale = gl_matrix_5.vec3.fromValues(1, 1, 1);
             this.primitiveType = rasterize_4.gl.TRIANGLES;
         }
+        /**
+         * Used to create a list of objects that pass the view frustum culling test which can be further sorted before rendering.
+         * @param frustum The frustum to cull against.
+         * @param drawAll Whether or not to ignore future fustum checks.
+         * @param visibleSet The visible set array to append objects that pass the culling tests.
+         */
         appendVisibleSet(frustum, drawAll, visibleSet) {
             // Try to cull AABB against the frustum
             if (drawAll == false) {
@@ -1119,13 +1154,13 @@ define("SoundBuffer", ["require", "exports"], function (require, exports) {
     }
     exports.SoundBuffer = SoundBuffer;
 });
-define("shaderPrograms/ScreenShaderProgram", ["require", "exports", "shaderPrograms/ShaderProgram", "rasterize"], function (require, exports, ShaderProgram_2, rasterize_5) {
+define("shaderPrograms/ScreenShaderProgram", ["require", "exports", "shaderPrograms/ShaderProgram", "rasterize"], function (require, exports, ShaderProgram_3, rasterize_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /**
      * Base class used by all full screen shader programs.  Used with a full-screen quad to apply an effect to the whole screen.
      */
-    class ScreenShaderProgram extends ShaderProgram_2.ShaderProgram {
+    class ScreenShaderProgram extends ShaderProgram_3.ShaderProgram {
         /**
          * Creates a new ScreenShaderProgram.
          * @param source The source code for the shader.
@@ -1136,10 +1171,10 @@ define("shaderPrograms/ScreenShaderProgram", ["require", "exports", "shaderProgr
             this.textureULoc = this.initUniform("uTexture");
             this.uScreenSizeLoc = this.initUniform("uScreenSize");
             // Optional uniforms
-            this.vMatrix = new ShaderProgram_2.OptionalUniform("uVMatrix", this, source);
-            this.pMatrix = new ShaderProgram_2.OptionalUniform("uPMatrix", this, source);
-            this.invVMatrix = new ShaderProgram_2.OptionalUniform("uInvVMatrix", this, source);
-            this.invPMatrix = new ShaderProgram_2.OptionalUniform("uInvPMatrix", this, source);
+            this.vMatrix = new ShaderProgram_3.OptionalUniform("uVMatrix", this, source);
+            this.pMatrix = new ShaderProgram_3.OptionalUniform("uPMatrix", this, source);
+            this.invVMatrix = new ShaderProgram_3.OptionalUniform("uInvVMatrix", this, source);
+            this.invPMatrix = new ShaderProgram_3.OptionalUniform("uInvPMatrix", this, source);
             // Set screen size uniform
             rasterize_5.gl.uniform2f(this.uScreenSizeLoc, rasterize_5.WIDTH, rasterize_5.HEIGHT);
         }
@@ -1158,7 +1193,13 @@ define("shaderPrograms/ScreenShaderProgram", ["require", "exports", "shaderProgr
 define("ScreenQuad", ["require", "exports", "rasterize"], function (require, exports, rasterize_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Represents a scree-filling quad used to render full-screen effects.
+     */
     class ScreenQuad {
+        /**
+         * Creates a new ScreenQuad.
+         */
         constructor() {
             this.vertexBuffer = rasterize_6.gl.createBuffer();
             rasterize_6.gl.bindBuffer(rasterize_6.gl.ARRAY_BUFFER, this.vertexBuffer);
@@ -1167,12 +1208,24 @@ define("ScreenQuad", ["require", "exports", "rasterize"], function (require, exp
             rasterize_6.gl.bindBuffer(rasterize_6.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
             rasterize_6.gl.bufferData(rasterize_6.gl.ELEMENT_ARRAY_BUFFER, ScreenQuad.indices, rasterize_6.gl.STATIC_DRAW);
         }
+        /**
+         * Sets various view and projection matricies which may be used by full screen shaders.
+         * @param pMatrix The projection matrix.
+         * @param vMatrix The view matrix.
+         * @param invPMatrix The inverse projection matrix.
+         * @param invVMatrix The inverse view matrix.
+         */
         setProjection(pMatrix, vMatrix, invPMatrix, invVMatrix) {
             this.pMatrix = pMatrix;
             this.vMatrix = vMatrix;
             this.invPMatrix = invPMatrix;
             this.invVMatrix = invVMatrix;
         }
+        /**
+         * Renders the screen-filling quad using the given shader program and main texture.
+         * @param program The shader program to draw with.
+         * @param texture The main texture to use when drawing.  Additional textures may need to be set on the program depending on type.
+         */
         draw(program, texture) {
             // Activate program
             program.begin();
@@ -1389,8 +1442,14 @@ define("shaderPrograms/SSAOMixShaderProgram", ["require", "exports", "rasterize"
 define("ObjModelNode", ["require", "exports", "MeshData", "gl-matrix", "AABB", "TreeNode", "MeshInstance", "rasterize", "MaterialData", "util"], function (require, exports, MeshData_1, gl_matrix_7, AABB_3, TreeNode_2, MeshInstance_1, rasterize_10, MaterialData_1, util_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    /**
+     * Intermediate vertex format used during OBJ loading
+     */
     class ObjVertex {
     }
+    /**
+     * Intermediate mesh format used during OBJ loading
+     */
     class ObjMesh {
         constructor() {
             this.triangles = [];
@@ -1400,14 +1459,16 @@ define("ObjModelNode", ["require", "exports", "MeshData", "gl-matrix", "AABB", "
      * A version of MeshData which loads limited information from OBJ files into WebGL buffers.
      */
     class ObjModelNode extends TreeNode_2.TreeNode {
-        constructor() {
-            super();
-        }
         /**
          * Decodes a subset of the OBJ file format.
          * Based on the OBJ file spec:
          * http://www.cs.utah.edu/~boulos/cs3505/obj_spec.pdf
-         * @param text OBJ file text
+         * @param objUrl The URL of the OBJ file to load.
+         * @param mtlUrl The URL of the MTL file to load or null if there is not one.
+         * @param position The position to place the newly created mesh instances.
+         * @param scale The scale to apply to the newly created mesh instances.
+         * @param scaleTo1by1 Whether or not the OBJ file should be scaled to fit within a 1x1x1 cube.
+         * @param defaultMaterial The material to use if the MTL file does not contain a definition that matches the OBJ file, or when there is no MTL file.
          */
         static create(objUrl, mtlUrl, position, scale, scaleTo1by1, defaultMaterial) {
             return new Promise(function (resolve, reject) {
@@ -1636,6 +1697,14 @@ define("ObjModelNode", ["require", "exports", "MeshData", "gl-matrix", "AABB", "
                 });
             });
         }
+        /**
+         * Converts OBJ faces, which may share UVs, Normals, etc., to the unique combinations that WebGL requires.
+         * @param m The mesh to convert.
+         * @param objPositions A list of all position vectors in the OBJ file.
+         * @param objNormals A list of all the normals in the OBJ file.
+         * @param objTexCoords A list of all texture coordinates in the OBJ file.
+         * @return A MeshData object containing the converted data.
+         */
         static processMesh(m, objPositions, objNormals, objTexCoords) {
             return new Promise(function (resolve, reject) {
                 return __awaiter(this, void 0, void 0, function* () {
@@ -1683,26 +1752,14 @@ define("ObjModelNode", ["require", "exports", "MeshData", "gl-matrix", "AABB", "
                 });
             });
         }
+        /**
+         * Process MTL file to extract material data.
+         * @param mtlFileText The text of teh MTL file.
+         * @param defaultMaterial The material to use if no material in the MTL file matches the name in the OBJ file.
+         * @return A list of material info in the same format as JSON material files, which can be used to create MaterialData.
+         */
         static processMtlFile(mtlFileText, defaultMaterial) {
             let materials = [];
-            /* Ex
-            newmtl leaf
-                Ns 10.0000
-                Ni 1.5000
-                d 1.0000
-                Tr 0.0000
-                Tf 1.0000 1.0000 1.0000
-                illum 2
-                Ka 0.5880 0.5880 0.5880
-                Kd 0.5880 0.5880 0.5880
-                Ks 0.0000 0.0000 0.0000
-                Ke 0.0000 0.0000 0.0000
-                map_Ka sponza/textures/sponza_thorn_diff.png
-                map_Kd sponza/textures/sponza_thorn_diff.png
-                map_d sponza/textures/sponza_thorn_mask.png
-                map_bump sponza/textures/sponza_thorn_ddn.png
-                bump sponza/textures/sponza_thorn_ddn.png
-            */
             let currentMaterial = null;
             let currentMaterialName = null;
             let currentStart = 0;
@@ -1890,7 +1947,7 @@ define("shaderPrograms/HBAOShaderProgram", ["require", "exports", "gl-matrix", "
     exports.HBAOShaderProgram = HBAOShaderProgram;
 });
 // <requires 
-define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "SoundBuffer", "shaderPrograms/DefaultShaderProgram", "shaderPrograms/ShaderProgram", "ScreenQuad", "shaderPrograms/ScreenShaderProgram", "shaderPrograms/SSAOShaderProgram", "shaderPrograms/SSAOBlurShaderProgram", "shaderPrograms/SSAOMixShaderProgram", "ObjModelNode", "shaderPrograms/SSAOPlusShaderProgram", "shaderPrograms/HBAOShaderProgram", "util"], function (require, exports, gl_matrix_10, Frustum_1, TreeNode_3, SoundBuffer_1, DefaultShaderProgram_1, ShaderProgram_3, ScreenQuad_1, ScreenShaderProgram_4, SSAOShaderProgram_2, SSAOBlurShaderProgram_1, SSAOMixShaderProgram_1, ObjModelNode_1, SSAOPlusShaderProgram_2, HBAOShaderProgram_1, util_3) {
+define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "SoundBuffer", "shaderPrograms/DefaultShaderProgram", "ScreenQuad", "shaderPrograms/ScreenShaderProgram", "shaderPrograms/SSAOShaderProgram", "shaderPrograms/SSAOBlurShaderProgram", "shaderPrograms/SSAOMixShaderProgram", "ObjModelNode", "shaderPrograms/SSAOPlusShaderProgram", "shaderPrograms/HBAOShaderProgram", "util"], function (require, exports, gl_matrix_10, Frustum_1, TreeNode_3, SoundBuffer_1, DefaultShaderProgram_1, ScreenQuad_1, ScreenShaderProgram_4, SSAOShaderProgram_2, SSAOBlurShaderProgram_1, SSAOMixShaderProgram_1, ObjModelNode_1, SSAOPlusShaderProgram_2, HBAOShaderProgram_1, util_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     /* GLOBAL CONSTANTS AND VARIABLES */
@@ -1951,7 +2008,10 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
     exports.Center = gl_matrix_10.vec3.clone(defaultCenter); // view direction in world space
     exports.Up = gl_matrix_10.vec3.clone(defaultUp); // view up vector in world space
     exports.viewDelta = 0.1; // how much to displace view with each key press
-    // does stuff when keys are pressed
+    /**
+     * Handles keyboard events.
+     * @param event The keyboard event to handle.
+     */
     function handleKeyDown(event) {
         // set up needed view params
         let lookAt = gl_matrix_10.vec3.create(), viewRight = gl_matrix_10.vec3.create(), temp = gl_matrix_10.vec3.create(); // lookat, right & temp vectors
@@ -2009,7 +2069,9 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
                 updateSampleCount();
         }
     }
-    // set up the webGL environment
+    /**
+     * Sets up the WebGL environment.
+     */
     function setupWebGL() {
         // Set up keys
         document.onkeydown = handleKeyDown; // call this when key pressed
@@ -2099,17 +2161,22 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
     let lastScrapingGain = 0;
     let footstepBuffer;
     let scrapingBuffer;
+    /** Used to group materials for draw sorting */
     class MaterialGrouping {
         constructor() {
             this.instances = [];
         }
     }
+    /** Used to group shaders for draw sorting */
     class ShaderGrouping {
         constructor() {
             this.materials = [];
         }
     }
-    // read models in, load them into webgl buffers
+    /**
+     * Read scene files and create models from OBJ files.
+     * @param scene
+     */
     function setupScene(scene) {
         if (scene == null) {
             throw "Unable to load scene file!";
@@ -2125,6 +2192,11 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
             loadModel(m, characterRoot);
         }
     }
+    /**
+     * Loads a particular model in a scene file.
+     * @param m The data for the model to load.
+     * @param parent The tree node to parent the newly created model node to.
+     */
     function loadModel(m, parent) {
         let pos = gl_matrix_10.vec3.fromValues(m.position[0], m.position[1], m.position[2]);
         let scale = gl_matrix_10.vec3.fromValues(m.scale, m.scale, m.scale);
@@ -2133,7 +2205,9 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
         });
     }
     let frameTimes = [];
-    // render the loaded model
+    /**
+     * Renders the scene.
+     */
     function renderModels() {
         let frameStartTime = performance.now();
         // Fade down sounds quickly but not instantly
@@ -2185,6 +2259,7 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
             characterRoot.appendVisibleSet(viewFrustum, false, visibleSet);
         }
         // Organize visible objects by shader, then material
+        // This should improve render speed to some degree by reducing state-changes
         let shaders = [];
         let currentShader;
         let currentMaterial;
@@ -2228,7 +2303,6 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
             }
             shader.end();
         }
-        TreeNode_3.TreeNode.endShader();
         if (aoEnabled || currentBuffer != DisplayBuffers.Combined) {
             // Switch to the offscreen frame buffer and draw SSAO to offscreen texture
             exports.gl.bindFramebuffer(exports.gl.FRAMEBUFFER, offscreenFB[0]);
@@ -2390,7 +2464,7 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
         }
         document.getElementById("ssaoTechnique").innerHTML = techName;
     }
-    /* MAIN -- HERE is where execution begins after window load */
+    /** This is where execution begins after window load */
     function main() {
         return __awaiter(this, void 0, void 0, function* () {
             // set up the webGL environment
@@ -2398,26 +2472,26 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
             // Get a Web Audio context
             let ac = new AudioContext();
             let shaderFiles = [];
-            shaderFiles["default"] = new ShaderFileNames("default", "default");
-            shaderFiles["normalMap"] = new ShaderFileNames("default", "default");
-            shaderFiles["screenColor"] = new ShaderFileNames("screen", "screen-color");
-            shaderFiles["screenNormals"] = new ShaderFileNames("screen", "screen-normal");
-            shaderFiles["screenDepth"] = new ShaderFileNames("screen", "screen-depth");
-            shaderFiles["ssaoBlur"] = new ShaderFileNames("screen", "screen-ssao-blur");
-            shaderFiles["ssao"] = new ShaderFileNames("screen", "screen-ssao");
-            shaderFiles["ssaoPlus"] = new ShaderFileNames("screen", "screen-ssao+");
-            shaderFiles["hbao"] = new ShaderFileNames("screen", "screen-hbao");
-            shaderFiles["ssaoMix"] = new ShaderFileNames("screen", "screen-ssao-mix");
-            shaderFiles["ssaoMixAll"] = new ShaderFileNames("screen", "screen-ssao-mix-all");
-            shaderFiles["gausVert"] = new ShaderFileNames("screen", "screen-gaus-v");
-            shaderFiles["gausHoriz"] = new ShaderFileNames("screen", "screen-gaus-h");
-            shaderFiles["unsharpenMask"] = new ShaderFileNames("screen", "screen-unsharpen-mask");
+            shaderFiles["default"] = new util_3.ShaderFileNames("default", "default");
+            shaderFiles["normalMap"] = new util_3.ShaderFileNames("default", "default");
+            shaderFiles["screenColor"] = new util_3.ShaderFileNames("screen", "screen-color");
+            shaderFiles["screenNormals"] = new util_3.ShaderFileNames("screen", "screen-normal");
+            shaderFiles["screenDepth"] = new util_3.ShaderFileNames("screen", "screen-depth");
+            shaderFiles["ssaoBlur"] = new util_3.ShaderFileNames("screen", "screen-ssao-blur");
+            shaderFiles["ssao"] = new util_3.ShaderFileNames("screen", "screen-ssao");
+            shaderFiles["ssaoPlus"] = new util_3.ShaderFileNames("screen", "screen-ssao+");
+            shaderFiles["hbao"] = new util_3.ShaderFileNames("screen", "screen-hbao");
+            shaderFiles["ssaoMix"] = new util_3.ShaderFileNames("screen", "screen-ssao-mix");
+            shaderFiles["ssaoMixAll"] = new util_3.ShaderFileNames("screen", "screen-ssao-mix-all");
+            shaderFiles["gausVert"] = new util_3.ShaderFileNames("screen", "screen-gaus-v");
+            shaderFiles["gausHoriz"] = new util_3.ShaderFileNames("screen", "screen-gaus-h");
+            shaderFiles["unsharpenMask"] = new util_3.ShaderFileNames("screen", "screen-unsharpen-mask");
             // Request assets
             let sceneResult = util_3.getJSONFile("assets/scene.json");
             let footstepResult = SoundBuffer_1.SoundBuffer.create(ac, "assets/footsteps.ogg");
             let scrapingResult = SoundBuffer_1.SoundBuffer.create(ac, "assets/scraping.ogg");
             // Await loading of all assets
-            let shaderSource = yield requestShaders(shaderFiles);
+            let shaderSource = yield util_3.requestShaders(shaderFiles);
             let scene = yield sceneResult;
             footstepBuffer = yield footstepResult;
             scrapingBuffer = yield scrapingResult;
@@ -2448,42 +2522,20 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
         });
     }
     exports.main = main;
+    /**
+     * Must be called whenever the sample count is changed to reload AO shaders that match the new sample count.
+     */
     function updateSampleCount() {
         return __awaiter(this, void 0, void 0, function* () {
             let shaderFiles = [];
-            shaderFiles["ssao"] = new ShaderFileNames("screen", "screen-ssao");
-            shaderFiles["ssaoPlus"] = new ShaderFileNames("screen", "screen-ssao+");
-            shaderFiles["hbao"] = new ShaderFileNames("screen", "screen-hbao");
+            shaderFiles["ssao"] = new util_3.ShaderFileNames("screen", "screen-ssao");
+            shaderFiles["ssaoPlus"] = new util_3.ShaderFileNames("screen", "screen-ssao+");
+            shaderFiles["hbao"] = new util_3.ShaderFileNames("screen", "screen-hbao");
             // Await loading of all assets
-            let shaderSource = yield requestShaders(shaderFiles);
+            let shaderSource = yield util_3.requestShaders(shaderFiles);
             exports.ssaoShaderProgram = new SSAOShaderProgram_2.SSAOShaderProgram(shaderSource["ssao"], sampleCounts[sampleCountIndex]);
             exports.ssaoPlusShaderProgram = new SSAOPlusShaderProgram_2.SSAOPlusShaderProgram(shaderSource["ssaoPlus"], sampleCounts[sampleCountIndex]);
             exports.hbaoShaderProgram = new HBAOShaderProgram_1.HBAOShaderProgram(shaderSource["hbao"], sampleCounts[sampleCountIndex]);
-        });
-    }
-    class ShaderFileNames {
-        constructor(frag, vert) {
-            this.frag = frag;
-            this.vert = vert;
-        }
-    }
-    function requestShaders(input) {
-        return new Promise(function (resolve, reject) {
-            return __awaiter(this, void 0, void 0, function* () {
-                let promises = [];
-                // Initiate all async actions
-                for (let key in input) {
-                    let item = input[key];
-                    promises[key] = ShaderProgram_3.ShaderProgram.fetchSource(item.frag, item.vert);
-                }
-                let results = [];
-                // Await all results
-                for (let key in promises) {
-                    let item = promises[key];
-                    results[key] = yield item;
-                }
-                resolve(results);
-            });
         });
     }
 });
