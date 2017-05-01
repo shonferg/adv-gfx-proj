@@ -61,7 +61,7 @@ enum SSAOTechnique {
     UnsharpenMask
 }
 
-let sampleCounts: number[] = [8, 16, 32, 64, 128, 256];
+let sampleCounts: number[] = [8, 16, 32, 64, 128, 256, 512, 1024];
 
 let sampleCountIndex = 1;
 

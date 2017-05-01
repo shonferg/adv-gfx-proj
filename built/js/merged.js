@@ -1759,7 +1759,7 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
         SSAOTechnique[SSAOTechnique["HBAO"] = 2] = "HBAO";
         SSAOTechnique[SSAOTechnique["UnsharpenMask"] = 3] = "UnsharpenMask";
     })(SSAOTechnique || (SSAOTechnique = {}));
-    let sampleCounts = [8, 16, 32, 64, 128, 256];
+    let sampleCounts = [8, 16, 32, 64, 128, 256, 512, 1024];
     let sampleCountIndex = 1;
     let ssaoTechniqueCount = 4;
     let currentTechnique = SSAOTechnique.SSAO;
