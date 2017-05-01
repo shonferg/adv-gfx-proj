@@ -92,6 +92,7 @@ https://www.turbosquid.com/3d-models/people-archviz-zbrush-max-free/886664
 
 ### Sponza Atrium
 Original created by Marko Dabrovic: http://hdri.cgtechniques.com/~sponza/files/
+
 Updated version created by Crytek: http://www.crytek.com/cryengine/cryengine3/downloads/
 
 ### Goblin
