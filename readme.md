@@ -24,7 +24,7 @@ The program implements several toggleable modes that can be accessed by pressing
 
 |Key|Description|
 |---|---|
-|**C**|Toggles dislay of two humanoid characters within the atrium environment.  These characters have a lot of polygons, so turning them off may boost performance.  It also demonstrates that the AO is not precalculated.|
+|**C**|Toggles display of two humanoid characters within the atrium environment.  These characters have a lot of polygons, so turning them off may boost performance.  It also demonstrates that the AO is not precalculated.|
 |**A**|Toggles the current AO effect on and off so the effect can be compared with basic rendering.|
 |**M**|Toggles whether the AO is mixed with only ambient light or all types of light (including diffuse and specular).  The way the AO is mixed to produce the final result varies by game based on art direction.|
 |**S**|Changes the number of samples used by all AO techniques except Unsharpen Mask.  Increasing samples improves the result, but it reduces performance.|
@@ -35,11 +35,11 @@ The program implements several toggleable modes that can be accessed by pressing
 
 I have included transpiled JavaScript code that is ready to run in a browser, but if you want to build the code from scratch, or rebuild after making tweaks, this section will explain how to do so.
 
-The program is written with [TypeScript](http://www.typescriptlang.org), which is a superset of JavaScript that adds type information as well as new language features that are not yet widley available in browsers.  The type information allows you to get error checking and code-completion within an editor so you know if you have made a simple mistake before refreshing the browser.  However, since browsers can't execute TypeScript directly, it requires an additional step to transpile TypeScript *.ts files into JavaScript *.js files that can be executed in a browser.  It can also produce code maps so that the original type script files can be debugged within the browser as if they were actually being executed.
+The program is written with [TypeScript](http://www.typescriptlang.org), which is a superset of JavaScript that adds type information as well as new language features that are not yet widely available in browsers.  The type information allows you to get error checking and code-completion within an editor so you know if you have made a simple mistake before refreshing the browser.  However, since browsers can't execute TypeScript directly, it requires an additional step to transpile TypeScript *.ts files into JavaScript *.js files that can be executed in a browser.  It can also produce code maps so that the original type script files can be debugged within the browser as if they were actually being executed.
 
 ### Build Steps
 1. Download and install [Node.js](https://nodejs.org/en/), if it is not already intalled.  Even if you have an existing installation, you may want to update it the latest to avoid any potential problems with the rest of the steps.
-2. Clone the github repository to a local folder
+2. Clone the GitHub repository to a local folder
 3. Open a command prompt and navigate to the repository folder
 4. Use Node.js to install TypeScript globally with this command (Note: Some of these may require sudo on Mac or Linux):
 ```
@@ -65,7 +65,7 @@ http-server
 
 ### Visual Studio Code
 
-For the best experience when browsing the code, I recomend trying out Microsoft's free cross-platform [Visual Studio Code](https://code.visualstudio.com) editor.  It offers syntax highlighting and code completion for TypeScript, and you can download the [vscode-shader](https://github.com/stef-levesque/vscode-shader) extension to get syntax highlighting for GLSL files as well.  Once installed, simply type tye following on the command line to open the current folder:
+For the best experience when working with the code, I recommend trying out Microsoft's free cross-platform [Visual Studio Code](https://code.visualstudio.com) editor.  It offers syntax highlighting and code completion for TypeScript, and you can download the [vscode-shader](https://github.com/stef-levesque/vscode-shader) extension to get syntax highlighting for GLSL files as well.  Once installed, simply type tye following on the command line to open the current folder:
 ```
 code .
 ```
