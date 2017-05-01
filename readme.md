@@ -90,17 +90,17 @@ I have implemented horizon-based ambient occlusion, a technique which arranges t
 ### FUTURESCAN GIGAPIXEL SAMPLE #2
 https://www.turbosquid.com/3d-models/people-archviz-zbrush-max-free/886664
 
-## Sponza Atrium
+### Sponza Atrium
 Original created by Marko Dabrovic: http://hdri.cgtechniques.com/~sponza/files/
 Updated version created by Crytek: http://www.crytek.com/cryengine/cryengine3/downloads/
 
-## Goblin
+### Goblin
 https://www.turbosquid.com/3d-models/polygonal-fantasy-goblin-3d-model/275524
 
-## Footstep Sound
+### Footstep Sound
 http://soundbible.com/2057-Footsteps-On-Cement.html
 
-## Additional Normal Maps
+### Additional Normal Maps
 Created using AwesomeBump: https://github.com/kmkolasinski/AwesomeBump
 
 ## Code Credits
