@@ -65,7 +65,7 @@ code .
 ```
 After the project is open, you can press **Ctrl+Shift+B** to start a TypeScript build in watch mode.  If you do it this way, you do not have to type the **tsc** command in step 7 above.
 
-##Claims
+## Claims
 
 ### SSAO+
 I have implemented the SSAO+ variation on the screen space-ambient occlusion technique which focuses the samples in the hemisphere surrounding the view-space normal.  Additionally, I have imlemented normal mapping so that fine details can be seen in the AO, even though this detail does not exist in the mesh. The implementation is located in [SSAOPlusShaderProgram.ts](blob/master/typescript/shaderPrograms/SSAOPlusShaderProgram.ts) and [screen-ssao+.frag](blob/master/shaders/screen-ssao%2B.frag).
