@@ -9,6 +9,8 @@ This demo, created as a final project for Advanced Graphics class, demonstrates 
 ## Directions
 Visit the following URL to run the program:
 
+https://shonferg.github.io/adv-gfx-proj/
+
 The program requires WebGL 2.0 support to run, and on my machine it runs best in Chrome/Opera.  It also runs in FireFox but it takes much longer to load and it may be required to confirm that you would like to wait longer for the script to complete before it will become interactive.  It does not work in Internet Explorer/Edge.
 
 ### Controls
@@ -53,7 +55,7 @@ tsc
 ```
 http-server
 ```
-9. Browse to [http://localhost:8080/built/index.htm].  As mentioned before, Chrome and Opera work best, but FireFox should also work.
+9. Browse to [http://localhost:8080].  As mentioned before, Chrome and Opera work best, but FireFox should also work.  Note: If you changed the port that http-server is running on, you will need to change it here as well.
 
 ### Visual Studio Code
 
