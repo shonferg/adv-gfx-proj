@@ -32,14 +32,14 @@ void main(void) {
     float d = getDepth(vTexCoord);
     vec3 normal = getNormal(vTexCoord);
 
-    // get reflection vector
-    vec2 reflectionTexCoord = vTexCoord * uScreenSize / 4.0;
-    vec3 rvec = 2.0 * texture(uOffsets, reflectionTexCoord).rgb - 1.0;
+    // get random vector
+    vec2 noiseTexCoord = vTexCoord * uScreenSize / 4.0;
+    vec3 rvec = vec3(texture(uOffsets, noiseTexCoord).rg * 2.0 - 1.0, 0.0);
 
     // Create rotation matrix that will rotate the sample hemisphere to be centered around the normal
     // Based on: http://john-chapman-graphics.blogspot.com/2013/01/ssao-tutorial.html
-    vec3 tangent = normalize(cross(normal, rvec));
-    vec3 binormal = normalize(cross(normal, tangent));
+    vec3 binormal = normalize(cross(rvec, normal));
+    vec3 tangent = normalize(cross(normal, binormal));
     mat3 tangentFrame = mat3(tangent, binormal, normal);
 
     // Calculate screen ratio to keep the sample area circular

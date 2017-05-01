@@ -26,6 +26,8 @@ export class HBAOShaderProgram extends SSAOPlusShaderProgram {
         for (let i = 0; i < 32; ++i) {
             let v = vec2.create();
             vec2.random(v);
+            vec2.scale(v, v, 0.5);
+            vec2.add(v, v, vec2.fromValues(0.5, 0.5));
             pixelData.push(Math.round(v[0] * 255), Math.round(v[1] * 255));
         }
 

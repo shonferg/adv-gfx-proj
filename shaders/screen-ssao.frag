@@ -24,9 +24,9 @@ float getDepth(vec2 uv)
 }
 
 void main(void) {
-    // get 4x4 reflection vector
-    vec2 reflectionTexCoord = vTexCoord * uScreenSize / 4.0;
-    vec3 vReflection = 2.0 * texture(uOffsets, reflectionTexCoord).rgb - 1.0;
+    // get random vector
+    vec2 noiseTexCoord = vTexCoord * uScreenSize / 4.0;
+    vec3 rvec = vec3(texture(uOffsets, noiseTexCoord).rg * 2.0 - 1.0, 0.0);
 
     // Calculate screen ratio to keep the sample area circular
     vec2 screenRatio = vec2(1.0, -uScreenSize.y / uScreenSize.x);
@@ -40,7 +40,7 @@ void main(void) {
         vec3 samplePos = vec3(vTexCoord, d);
 
         vec3 currentSample = sampleVectors[i];
-        currentSample = reflect(currentSample, vReflection);
+        currentSample = reflect(currentSample, rvec);
 
         samplePos += vec3(currentSample.xy * screenRatio, currentSample.z * d * 2.0);
 

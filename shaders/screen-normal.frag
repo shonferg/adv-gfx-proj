@@ -14,6 +14,6 @@ out vec4 oColor;
 
 void main(void) {
     // Visualize normalized vectors
-    vec4 texColor = texture(uTexture, vTexCoord);
-    oColor = vec4(texColor.rgb * 0.5 + 0.5, 1.0);
+    vec3 texColor = texture(uTexture, vTexCoord).rgb * 2.0 - 1.0;
+    oColor = vec4(abs(texColor), 1.0);
 }

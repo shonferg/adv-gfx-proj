@@ -1185,12 +1185,11 @@ define("shaderPrograms/SSAOShaderProgram", ["require", "exports", "shaderProgram
             // Generate a 4 x 4 texture of random vectors
             let pixelData = [];
             for (let i = 0; i < 16; ++i) {
-                let v = gl_matrix_6.vec3.random(gl_matrix_6.vec3.create());
-                v[2] = 0;
-                gl_matrix_6.vec3.normalize(v, v);
-                gl_matrix_6.vec3.scale(v, v, 0.5);
-                gl_matrix_6.vec3.add(v, v, gl_matrix_6.vec3.fromValues(0.5, 0.5, 0.5));
-                pixelData.push(Math.round(v[0] * 255), Math.round(v[1] * 255), 0);
+                let v = gl_matrix_6.vec2.create();
+                gl_matrix_6.vec2.random(v);
+                gl_matrix_6.vec2.scale(v, v, 0.5);
+                gl_matrix_6.vec2.add(v, v, gl_matrix_6.vec2.fromValues(0.5, 0.5));
+                pixelData.push(Math.round(v[0] * 255), Math.round(v[1] * 255), 128);
             }
             this.offsetTexture = rasterize_7.gl.createTexture();
             rasterize_7.gl.bindTexture(rasterize_7.gl.TEXTURE_2D, this.offsetTexture);
@@ -1656,7 +1655,7 @@ define("shaderPrograms/SSAOPlusShaderProgram", ["require", "exports", "gl-matrix
             // Geneate random sample offsets
             let sampleVectors = [];
             let temp = gl_matrix_8.vec3.create();
-            let centralVector = gl_matrix_8.vec3.fromValues(0, 0, 1);
+            let centralVector = gl_matrix_8.vec3.fromValues(0, 1, 0);
             while (sampleVectors.length < numSamples) {
                 gl_matrix_8.vec3.random(temp, Math.random());
                 if (gl_matrix_8.vec3.dot(centralVector, temp) <= 0) {
@@ -1703,6 +1702,8 @@ define("shaderPrograms/HBAOShaderProgram", ["require", "exports", "gl-matrix", "
             for (let i = 0; i < 32; ++i) {
                 let v = gl_matrix_9.vec2.create();
                 gl_matrix_9.vec2.random(v);
+                gl_matrix_9.vec2.scale(v, v, 0.5);
+                gl_matrix_9.vec2.add(v, v, gl_matrix_9.vec2.fromValues(0.5, 0.5));
                 pixelData.push(Math.round(v[0] * 255), Math.round(v[1] * 255));
             }
             this.offsetTexture = rasterize_12.gl.createTexture();
@@ -2117,13 +2118,13 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
                 exports.screenQuad.draw(exports.screenColorShaderProgram, ambientTexture);
                 break;
             case DisplayBuffers.Position:
-                exports.screenQuad.draw(exports.screenNormalsShaderProgram, positionTexture);
+                exports.screenQuad.draw(exports.screenColorShaderProgram, positionTexture);
                 break;
             case DisplayBuffers.Depth:
                 exports.screenQuad.draw(exports.screenDepthShaderProgram, positionTexture);
                 break;
             case DisplayBuffers.Normals:
-                exports.screenQuad.draw(exports.screenColorShaderProgram, normalTexture);
+                exports.screenQuad.draw(exports.screenNormalsShaderProgram, normalTexture);
                 break;
             case DisplayBuffers.SSAO:
                 exports.screenQuad.draw(exports.screenColorShaderProgram, offscreenTexture[0]);
@@ -2182,10 +2183,20 @@ define("rasterize", ["require", "exports", "gl-matrix", "Frustum", "TreeNode", "
                 bufferName = "Normals";
                 break;
             case DisplayBuffers.SSAO:
-                bufferName = "SSAO Unfiltered";
+                if (currentTechnique == SSAOTechnique.UnsharpenMask) {
+                    bufferName = "Blurred Depth";
+                }
+                else {
+                    bufferName = "AO Unfiltered";
+                }
                 break;
             case DisplayBuffers.SSAOBlurred:
-                bufferName = "SSAO Blurred";
+                if (currentTechnique == SSAOTechnique.UnsharpenMask) {
+                    bufferName = "Unsharpen Mask";
+                }
+                else {
+                    bufferName = "AO Blurred";
+                }
                 break;
             case DisplayBuffers.Combined:
                 bufferName = "Combined";

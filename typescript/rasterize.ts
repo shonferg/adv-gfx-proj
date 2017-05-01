@@ -515,13 +515,13 @@ function renderModels() {
             screenQuad.draw(screenColorShaderProgram, ambientTexture);
             break;
         case DisplayBuffers.Position:
-            screenQuad.draw(screenNormalsShaderProgram, positionTexture);
+            screenQuad.draw(screenColorShaderProgram, positionTexture);
             break;
         case DisplayBuffers.Depth:
             screenQuad.draw(screenDepthShaderProgram, positionTexture);
             break;
         case DisplayBuffers.Normals:
-            screenQuad.draw(screenColorShaderProgram, normalTexture);
+            screenQuad.draw(screenNormalsShaderProgram, normalTexture);
             break;
         case DisplayBuffers.SSAO:
             screenQuad.draw(screenColorShaderProgram, offscreenTexture[0]);
@@ -589,10 +589,18 @@ function renderModels() {
             bufferName = "Normals";
             break;
         case DisplayBuffers.SSAO:
-            bufferName = "SSAO Unfiltered";
+            if (currentTechnique == SSAOTechnique.UnsharpenMask) {
+                bufferName = "Blurred Depth";
+            } else {
+                bufferName = "AO Unfiltered";
+            }
             break;
         case DisplayBuffers.SSAOBlurred:
-            bufferName = "SSAO Blurred";
+            if (currentTechnique == SSAOTechnique.UnsharpenMask) {
+                bufferName = "Unsharpen Mask";
+            } else {
+                bufferName = "AO Blurred";
+            }
             break;
         case DisplayBuffers.Combined:
             bufferName = "Combined";

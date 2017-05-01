@@ -1,5 +1,5 @@
 import { ScreenShaderProgram } from "./ScreenShaderProgram";
-import { vec3 } from "gl-matrix";
+import { vec3, vec2 } from "gl-matrix";
 import { ShaderSourceCode } from "./ShaderProgram";
 import { gl, WIDTH, HEIGHT } from "../rasterize";
 
@@ -87,12 +87,11 @@ export class SSAOShaderProgram extends ScreenShaderProgram {
         let pixelData: number[] = [];
 
         for (let i = 0; i < 16; ++i) {
-            let v = vec3.random(vec3.create());
-            v[2] = 0;
-            vec3.normalize(v, v);
-            vec3.scale(v, v, 0.5);
-            vec3.add(v, v, vec3.fromValues(0.5, 0.5, 0.5));
-            pixelData.push(Math.round(v[0] * 255), Math.round(v[1] * 255), 0);
+            let v = vec2.create();
+            vec2.random(v);
+            vec2.scale(v, v, 0.5);
+            vec2.add(v, v, vec2.fromValues(0.5, 0.5));
+            pixelData.push(Math.round(v[0] * 255), Math.round(v[1] * 255), 128);
         }
 
         this.offsetTexture = gl.createTexture();

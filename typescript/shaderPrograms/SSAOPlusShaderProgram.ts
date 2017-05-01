@@ -24,7 +24,7 @@ export class SSAOPlusShaderProgram extends SSAOShaderProgram {
         // Geneate random sample offsets
         let sampleVectors: vec3[] = [];
         let temp: vec3 = vec3.create();
-        let centralVector = vec3.fromValues(0, 0, 1);
+        let centralVector = vec3.fromValues(0, 1, 0);
         while (sampleVectors.length < numSamples) {
             vec3.random(temp, Math.random());
 
