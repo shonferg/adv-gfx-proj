@@ -61,7 +61,7 @@ tsc
 ```
 http-server
 ```
-9. Browse to [http://localhost:8080].  As mentioned before, Chrome and Opera work best, but FireFox should also work.  Note: If you changed the port that http-server is running on, you will need to change it here as well.
+9. Browse to [http://localhost:8080](http://localhost:8080).  As mentioned before, Chrome and Opera work best, but FireFox should also work.  Note: If you changed the port that http-server is running on, you will need to change it here as well.
 
 ### Visual Studio Code
 
