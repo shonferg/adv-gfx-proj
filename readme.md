@@ -1,5 +1,4 @@
 # CSC 462 Advanced Graphics Final Project
-**Screen Space Ambient Occlusion Project**
 
 ## Description
 This demo, created as a final project for Advanced Graphics class, demonstrates several techniques for generating real-time ambient occlusion.  It includes implementations of SSAO, SSAO+, HBAO, and Unsharpen Mask techniques.  It also features multiple render targets, the ability to load OBJ files, and normal and specular mapping.
