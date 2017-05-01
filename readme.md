@@ -27,12 +27,12 @@ The program implements several toggleable modes that can be accessed by pressing
 
 |Key|Description|
 |---|---|
-|**C**|Toggles dislay of characters.  These characters have a lot of polygons, so turning them off may boost performance.|
+|**C**|Toggles dislay of two humanoid characters within the atrium environment.  These characters have a lot of polygons, so turning them off may boost performance.  It also demonstrates that the AO is not precalculated.|
 |**A**|Toggles the current AO effect on and off so the effect can be compared with basic rendering.|
-|**M**|Toggles whether the AO is mixed with only ambient light or all types of light (including diffuse and specular).|
+|**M**|Toggles whether the AO is mixed with only ambient light or all types of light (including diffuse and specular).  The way the AO is mixed to produce the final result varies by game based on art direction.|
 |**S**|Changes the number of samples used by all AO techniques except Unsharpen Mask.  Increasing samples improves the result, but it reduces performance.|
 |**T**|Cycles through each AO Technique.|
-|**B**|Cycles through visualizations of the various buffers used to compose the scene.  These are rendered in one pass using MRT.|
+|**B**|Cycles through visualizations of the various buffers used to compose the scene.  Ambient, Diffuse+Specular, Position/Depth, and Normals are rendered in one pass using MRT.  The two SSAO buffers vary based on the technique in use.|
 
 ## Building from Scratch
 
