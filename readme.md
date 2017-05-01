@@ -68,7 +68,7 @@ After the project is open, you can press **Ctrl+Shift+B** to start a TypeScript 
 ##Claims
 
 ### SSAO+
-I have implemented the SSAO+ variation on the screen space-ambient occlusion technique which focuses the samples in the hemisphere surrounding the view-space normal.  Additionally, I have imlemented normal mapping so that fine details can be seen in the AO, even though this detail does not exist in the mesh. The implementation is located in **typescript/shaderPrograms/SSAOPlusShaderProgram.ts** and **shaders/screen-ssao+.frag**.
+I have implemented the SSAO+ variation on the screen space-ambient occlusion technique which focuses the samples in the hemisphere surrounding the view-space normal.  Additionally, I have imlemented normal mapping so that fine details can be seen in the AO, even though this detail does not exist in the mesh. The implementation is located in [SSAOPlusShaderProgram.ts](blob/master/typescript/shaderPrograms/SSAOPlusShaderProgram.ts) and [screen-ssao+.frag](blob/master/shaders/screen-ssao%2B.frag).
 
 ### Unsharpen Mask
 I have implemented the simplistic AO technique unsharpen mask which subtracts a blurred version of the depth buffer from itself.  I did so using a separated horizontal and vertical blur passes.  The implementation can be found in **shaders/screen-unsharpen-mask.frag**, **shaders/screen-gaus-h.frag**, and **shaders/screen-gaus-v.frag**.
