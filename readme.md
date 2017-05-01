@@ -1,7 +1,7 @@
 # CSC 462 Advanced Graphics Final Project
 
 ## Description
-This demo, created as a final project for Advanced Graphics class, demonstrates several techniques for generating real-time ambient occlusion.  It includes implementations of SSAO, SSAO+, HBAO, and Unsharpen Mask techniques.  It also features multiple render targets, the ability to load OBJ files, and normal and specular mapping.
+This demo, created as a final project for [Advanced Graphics class](http://cg4games.csc.ncsu.edu), demonstrates several techniques for generating real-time ambient occlusion.  It includes implementations of SSAO, SSAO+, HBAO, and Unsharpen Mask techniques.  It also features multiple render targets, the ability to load OBJ files, and normal and specular mapping.
 
 ## Live Demo
 Visit the following URL to run the program:
