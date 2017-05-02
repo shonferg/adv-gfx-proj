@@ -14,7 +14,11 @@ Note that it may take several seconds to load before it becomes responsive due t
 The program requires WebGL 2.0 support to run, and on my machine it runs best in Chrome/Opera.  It also runs in FireFox but it takes much longer to load and it may be required to confirm that you would like to wait longer for the script to complete before it will become interactive.  It does not work in Internet Explorer/Edge.
 
 ### Video
-I created a short video illustrating the features of the program, which is located here:
+A short video illustrating the features of the demo:
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=cl4jaGOF0g8
+" target="_blank"><img src="http://img.youtube.com/vi/cl4jaGOF0g8/0.jpg" 
+alt="Demo Video" width="240" height="180" border="10" /></a>
 
 ### Controls
 Walk around using the arrow keys.  Press key toggles to changes options, as described below.
