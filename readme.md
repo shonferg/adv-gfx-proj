@@ -57,11 +57,11 @@ npm install -g http-server
 ```
 npm install
 ```
-7. Use TypeScript to build the project.  Note: You can add the **-w** command line switch to run TypeScript in watch mode.  In this mode, TypeScript will continue to run and watch all your files for changes.  Any change to the source *.ts files will result in a rebuilt *.js file.  This way, you will not have to remember to type the command every time you make a change.  However, this will take over the current console window, so you will need to open a separate one for the next step.
+7. Use TypeScript to build the project.  Note: You can add the **-w** command line switch to run TypeScript in watch mode.  In this mode, TypeScript will continue to run and watch all your files for changes.  Any change to the source *.ts files will result in a rebuilt *.js file.  This way, you will not have to remember to type the command every time you make a change.  However, this will take over the current console window, so you will need to open a second console window and navigate back to the project folder before moving on to the next step.
 ```
 tsc
 ```
-8. Use the simple Node.js http-server to host the page locally.  This will take over the current command line window while it is running.  Note that this requires port 8080 to be unused.  You can specify an alternative port with the **-p** command-line option if desired:
+8. Use the simple Node.js http-server to host the page locally.  This will start up a local web server that will host the contents of the folder that it is run in, so make sure you run it from the project root folder.  The server will take over the current command line window while it is running.  Note that this requires port 8080 to be unused.  You can specify an alternative port with the **-p** command-line option if desired:
 ```
 http-server
 ```
