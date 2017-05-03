@@ -69,7 +69,7 @@ http-server
 
 ### Visual Studio Code
 
-For the best experience when working with the code, I recommend trying out Microsoft's free cross-platform [Visual Studio Code](https://code.visualstudio.com) editor.  It offers syntax highlighting and code completion for TypeScript, and you can download the [vscode-shader](https://github.com/stef-levesque/vscode-shader) extension to get syntax highlighting for GLSL files as well.  Once installed, simply type tye following on the command line to open the current folder:
+For the best experience when working with the code, I recommend trying out Microsoft's free cross-platform [Visual Studio Code](https://code.visualstudio.com) editor.  It offers syntax highlighting and code completion for TypeScript, and you can download the [vscode-shader](https://github.com/stef-levesque/vscode-shader) extension to get syntax highlighting for GLSL files as well.  Once installed, simply type the following on the command line to open the current folder:
 ```
 code .
 ```
