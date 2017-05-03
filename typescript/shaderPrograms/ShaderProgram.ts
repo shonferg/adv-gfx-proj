@@ -117,7 +117,7 @@ export class ShaderProgram {
      * @param name The name of the uniform to initialize
      * @return The WebGL uniform location.
      */
-    protected initUniform(name: string): WebGLUniformLocation {
+    initUniform(name: string): WebGLUniformLocation {
         return gl.getUniformLocation(this.program, name);
     }
 
@@ -126,7 +126,7 @@ export class ShaderProgram {
      * @param name The name of the attribute.
      * @return The WebGL attribute location number.
      */
-    protected initAttribute(name: string): number {
+    initAttribute(name: string): number {
         let loc = gl.getAttribLocation(this.program, name); // ptr to vertex pos attrib
         this.attributes.push(loc);
         return loc;
