@@ -11,7 +11,13 @@ https://shonferg.github.io/adv-gfx-proj/
 Note that it may take several seconds to load before it becomes responsive due to the large size of the 3D mesh files.
 
 ### Requirements
-The program requires WebGL 2.0 support to run, and on my machine it runs best in Chrome/Opera.  It also runs in FireFox but it takes much longer to load and it may be required to confirm that you would like to wait longer for the script to complete before it will become interactive.  It does not work in Internet Explorer/Edge.
+In order to run this demo the following browser features are required:
+* WebGL 2.0
+* Support for the following two WebGL extensions to enable floating point texture support:
+  * OES_texture_float_linear
+  * EXT_color_buffer_float
+
+On my machine it runs best in Chrome/Opera.  It also runs in FireFox but it takes much longer to load and it may be required to confirm that you would like to wait longer for the script to complete before it will become interactive.  It does not work in Internet Explorer/Edge.
 
 ### Video
 A short video illustrating the features of the demo:
